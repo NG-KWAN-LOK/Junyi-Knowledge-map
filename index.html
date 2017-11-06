@@ -1015,6 +1015,24 @@
                 var blob = new Blob([save_txt], { type: "text/plain;charset=utf-8" });
                 saveAs(blob, 'graph.txt');
             }
+            function importEditNetwork(event){
+                var files = document.getElementById('customNetwork').files;
+                if (!files.length) {
+                    alert('Please select a file!');
+                    return;
+                }
+                var file = files[0];
+                var reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                reader.onload = function (e, callback) {
+                    var data = reader.result;
+                    data = data.replace('\n', '\\n');
+                    customNetwork = jQuery.parseJSON(data);
+                    curNodeList = customNetwork['nodes'];
+                    curEdgeList = customNetwork['edges'];
+                    setAndRedrawNetwork();
+                }
+            }
         </script>
     </head>
     <body>
@@ -1054,6 +1072,7 @@
     <button id="editModeBtn" class="btn btn-info" onclick="changeEditMode()" disabled>進入編輯模式</button>
     <div class="edit-mode" style="display: none;">
         <button id="exportBtn" class="btn btn-success" onclick="exportEditNetwork()">匯出編輯的圖</button>
+        <input id="customNetwork" type="file" name="paste the network here" onchange="importEditNetwork(event)" />
         <span class="edit-node-radio">
             <input type="radio" id="nodeGroup-unknown" name="nodeGroup" value="unknown" onchange="changeEditGroup()" checked><label for="nodeGroup-unknown"><div class="radio-color-display" style="background-color: #CCC;"></div>無資料</label>
             <input type="radio" id="nodeGroup-X" name="nodeGroup" value="X" onchange="changeEditGroup()"><label for="nodeGroup-X"><div class="radio-color-display" style="background-color: lightcoral;"></div>不會</label>
