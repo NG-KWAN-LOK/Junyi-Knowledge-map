@@ -55,7 +55,7 @@
             var cgToExercise = {
                 "3-n-11": ["menfs3ce"],
                 "4-n-07": [],
-                "4-n-08": ["menfs4cb","menfs4ab"],
+                "4-n-08": ["menfs4cf","menfs4cd"],
                 "4-n-09": [],
                 "4-n-10": [],
                 "5-n-06": ["menfs4ae"],
@@ -102,30 +102,59 @@
                 { id: '6-n-09', label: '6-n-09\n認識比和比值', name: '6-n-09\n認識比和比值', cg: '6-n-09' },
                 { id: '6-n-10', label: '6-n-10\n理解正比的意義', name: '6-n-10\n理解正比的意義', cg: '6-n-10' },
             ];
+            // temp: for discuss
+            var statusStrArray = [
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '0', '246/1335=0.18', '392/1335=0.29', '352/1335=0.26', '608/1335=0.46', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '227/1335=0.17', '0', '337/1335=0.25', '329/1335=0.25', '593/1335=0.44', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '193/1335=0.14', '157/1335=0.12', '0', '226/1335=0.17', '441/1335=0.33', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '212/1335=0.16', '208/1335=0.16', '285/1335=0.21', '0', '483/1335=0.36', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '64/1335=0.05', '68/1335=0.05', '96/1335=0.07', '79/1335=0.06', '0', '0', '0', '0', '0', '0'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '127/1423=0.09', '52/789=0.07', '46/903=0.05', '94/1423=0.07'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '341/1423=0.24', '0', '76/789=0.1', '100/903=0.11', '153/1423=0.11'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '279/789=0.35', '182/789=0.23', '0', '85/530=0.16', '127/789=0.16'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '228/903=0.25', '162/903=0.18', '50/530=0.09', '0', '112/903=0.12'],
+                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '682/1423=0.48', '527/1423=0.37', '226/789=0.29', '293/903=0.32', '0']];
+            var correctRateDict = {
+                '4-n-08': 0.48,
+                '6-n-05': 0.50,
+                '3-n-11': 0.55,
+                '5-n-06': 0.42,
+                '5-n-13': 0.83,
+                '6-n-04': 0.63,
+                '6-n-09': 0.58,
+                '5-n-09': 0.53,
+                '6-n-03': 0.78,
+                '6-n-10': 0.37,
+                '5-n-07': 0.44,
+                '5-n-08': 0.57
+            }
 
             // yisheng
             var cgYishengList = [
-                { from: '4-n-08', to: '4-n-07' },
-                { from: '3-n-11', to: '4-n-08' },
-                { from: '4-n-08', to: '4-n-09' },
-                { from: '4-n-07', to: '4-n-09' },
-                { from: '4-n-07', to: '4-n-10' },
-                { from: '4-n-09', to: '4-n-10' },
-                { from: '4-n-09', to: '5-n-06' },
-                { from: '5-n-04', to: '5-n-06' },
-                { from: '5-n-06', to: '5-n-07' },
-                { from: '5-n-04', to: '5-n-07' },
-                { from: '5-n-05', to: '5-n-07' },
-                { from: '4-n-07', to: '5-n-08' },
-                { from: '5-n-06', to: '5-n-08' },
-                { from: '5-n-08', to: '5-n-09' },
-                { from: '4-n-10', to: '5-n-13' },
-                { from: '5-n-06', to: '6-n-03' },
-                { from: '6-n-02', to: '6-n-03' },
-                { from: '5-n-09', to: '6-n-04' },
-                { from: '5-n-06', to: '6-n-09' },
-                { from: '5-n-14', to: '6-n-09' },
-                { from: '6-n-09', to: '6-n-10' }
+                { "from": "3-n-11", "to": "4-n-08" },
+                { "from": "4-n-08", "to": "4-n-09" },
+                { "from": "4-n-09", "to": "5-n-06" },
+                { "from": "5-n-04", "to": "5-n-06" },
+                { "from": "5-n-06", "to": "5-n-07" },
+                { "from": "5-n-04", "to": "5-n-07" },
+                { "from": "5-n-05", "to": "5-n-07" },
+                { "from": "5-n-06", "to": "5-n-08" },
+                { "from": "5-n-08", "to": "5-n-09" },
+                { "from": "4-n-10", "to": "5-n-13" },
+                { "from": "5-n-06", "to": "6-n-03" },
+                { "from": "6-n-02", "to": "6-n-03" },
+                { "from": "5-n-09", "to": "6-n-04" },
+                { "from": "5-n-06", "to": "6-n-09" },
+                { "from": "5-n-14", "to": "6-n-09" },
+                { "from": "6-n-09", "to": "6-n-10" },
+                { "from": "3-n-11", "to": "4-n-07" },
+                { "from": "4-n-07", "to": "6-n-09" },
+                { "from": "4-n-08", "to": "4-n-10" }
             ];
             cgYishengList = updateEdgesWeight(cgYishengList);
 
@@ -156,6 +185,7 @@
                         weight = notvalidWeight[ind1][ind2];
                         if (weight > 0){
                             edges_list[i]['width'] = (1-weight) * 8;
+                            //edges_list[i]['label'] = statusStrArray[ind1][ind2]; // temp
                         }
                     }
                 }
@@ -247,7 +277,7 @@
                 results_obj = jQuery.parseJSON(data);
                 $(".submit_junyi").show();
                 //junyi_obj = undefined;
-                //updateStudentDropdown();
+                updateStudentDropdown();
             }
             function loadJunyiJson(data){
                 if(!data){
@@ -257,21 +287,21 @@
                 updateStudentDropdown();
             }
             function updateStudentDropdown(){
-                // if (!results_obj){
-                //     return
-                // }
+                if (!results_obj){
+                    return
+                }
                 var student_list = [];
                 var studentDropdown = $("#studentDropdownContainer");
                 studentDropdown[0].innerHTML = "";
-                // for(var email in results_obj){
-                //     student_list.push(email);
-                //     var s_item = $("<a></a>").text(email);
-                //     s_item.attr("class", "dropdown-item");
-                //     s_item.attr("id", email);
-                //     s_item.attr("value", email);
-                //     s_item.attr("onclick", "setEmail(this.id)");
-                //     studentDropdown.append(s_item)
-                // }
+                for(var email in results_obj){
+                    student_list.push(email);
+                    var s_item = $("<a></a>").text(email);
+                    s_item.attr("class", "dropdown-item");
+                    s_item.attr("id", email);
+                    s_item.attr("value", email);
+                    s_item.attr("onclick", "setEmail(this.id)");
+                    studentDropdown.append(s_item)
+                }
                 if(junyi_obj){
                     for(var email in junyi_obj){
                         if(student_list.indexOf(email) === -1){
@@ -328,7 +358,7 @@
                 if(!email){ return }
 
                 curEmail = email;
-                curTime = 'all';
+                curTime = curTime ? curTime : 'all';
                 updateDateDropdown();
                 changeNodeGroup(curTime);
                 $("#dropdownStudentButton")[0].innerHTML = email;
@@ -444,6 +474,7 @@
             }
             function summaryResult(resultList){
                 desc = [];
+                data = [];
                 status = "";
                 count = {
                     "under5": 0,
@@ -461,6 +492,7 @@
                     result = resultList[i];
                     count[ result["status"] ] += 1;
                     desc.push( result["date"]+'  '+result["title"] +'  '+status_word[ result["status"] ] );
+                    data.push( result );
                 }
                 desc = desc.join('\n');
                 max_count = 0;
@@ -473,6 +505,7 @@
                 return {
                     "status": status,
                     "date": desc,
+                    "data": data,
                 }
             }
             function mergeTwoResult( remedial_result, junyi_result){
@@ -493,7 +526,7 @@
                         } else {
                             result_obj[sectionName]['date'] = '補救結果：'+ remedial_result[sectionName]['status']+'\n'+junyi_result[sectionName]['date'];
                         }
-                        
+                        result_obj[sectionName]['data'] = junyi_result[sectionName]['data'].push(junyi_result[sectionName])
                     }
                 }
                 return result_obj
@@ -506,6 +539,7 @@
                     alert("沒有選擇學生！")
                     return;
                 }
+                curTime = time;
                 var remedial_result = getRemedialResultByTime(time);
                 var junyi_result = onlyRemedialResult ? {} : getJunyiResult();
                 var result_obj = mergeTwoResult(remedial_result, junyi_result);
@@ -514,6 +548,7 @@
                     node_obj = nodeListTmp[i];
                     node_id = node_obj['id'];
                     if (node_id in result_obj){
+                        nodeListTmp[i]['data'] = result_obj[node_id]['data']
                         if (result_obj[node_id]['status']){
                             nodeListTmp[i]['group'] = result_obj[ node_id ]['status'];
                             if (result_obj[node_id]['date'] !== 'NA' && result_obj[node_id]['date'] !== 'nan'){
@@ -530,11 +565,167 @@
                         nodeListTmp[i]['label'] = nodeListTmp[i]['name'];
                     }
                 }
+
+                // guess the unknown result node
+                function guessNodeGroup(nodeId, _nodeList, _edgeList, way){
+                    
+                    for(var i=0; i<_edgeList.length; i++){
+                        var edge = _edgeList[i];
+                        if( (way === 'forward' && edge['from'] === nodeId) ||
+                            (way === 'backward' && edge['to'] === nodeId ) ){
+                            var guessNodeId = way === 'forward' ? edge['to'] : edge['from'];
+                            for(var j=0; j<_nodeList.length; j++){
+                                var _node = _nodeList[j];
+                                if(_node['id'] === guessNodeId && !_node['group']){
+                                    _nodeList[j]['group'] = way === 'forward' ? 'guessX' : 'guessO';
+                                    _nodeList = guessNodeGroup(guessNodeId, _nodeList, _edgeList, way);
+                                    break // at most 1 node matched
+                                } else if(_node['id'] === guessNodeId && _node['group']){
+                                    if(( way === 'backward' && _node['group'] === 'guessX') ||
+                                       ( way === 'forward' &&  _node['group'] === 'guessO')){
+                                        _nodeList[j]['group'] = 'guessT';
+                                        _nodeList = guessNodeGroup(guessNodeId, _nodeList, _edgeList, way);
+                                        break // at most 1 node matched
+                                    }   
+                                }
+                            }
+                        }
+                    }
+                    return _nodeList
+                }
+                for(var i=0; i<nodeListTmp.length; i++){
+                    
+                    var node = nodeListTmp[i];
+                    ///// temp
+                    // var cg = node['cg'];
+                    // if(correctRateDict[cg]){
+                    //     nodeListTmp[i]['label'] = correctRateDict[cg] + '\n' + nodeListTmp[i]['label'];
+                    // }
+                    /////
+                    if (node['group'] === 'X' || node['group'] === 'not_fit'){
+                        nodeListTmp = guessNodeGroup(node['id'], nodeListTmp, curEdgeList, 'forward');
+                    } else if(node['group'] === 'O' || node['group'] === 'easy' || node['group'] === 'fit'){
+                        nodeListTmp = guessNodeGroup(node['id'], nodeListTmp, curEdgeList, 'backward');
+                    }
+                }
+                guessTList = nodeListTmp.filter(function(_node){
+                    return _node['group'] === 'guessT'
+                });
+                $("#guessNode")[0].innerText = "有" + guessTList.length + "衝突的節點。"
+
+                // backward to fill learned node
+                // endNodeIdList = getEndNode(nodeListTmp, curEdgeList);
+                for (var i = 0; i < nodeListTmp.length; i++) {
+                    var curNode = nodeListTmp[i];
+                    if( curNode['group'] === 'fit' || curNode['group'] == 'easy' ){
+                        var curDate = undefined;
+                        if(curNode['data']){
+                            var curDateList = curNode['data'].map(function (result) {
+                                return result['date']
+                            })
+                            curDate = maxStringArray(curDateList);
+                        } else {
+                            curDate = curNode['date'];
+                        }
+                        nodeListTmp = recursiveFillLearnedNode(curNode['id'], curDate, nodeListTmp, curEdgeList, 3)
+                    }
+                }
+                // when get the learned node change the previous node to green
+                function recursiveFillLearnedNode(_nodeId, _date, _curNodeList, _curEdgeList, _rememberNumber){
+                    var prevNodeIds = _curEdgeList.filter(function(edge){
+                        return edge['to'] == _nodeId
+                    }).map(function(edge){
+                        return edge['from']
+                    });
+                    _rememberNumber = _rememberNumber - prevNodeIds.length;
+                    for ( var prevIdx = 0; prevIdx < prevNodeIds.length; prevIdx++ ) {
+                        var prevNodeId = prevNodeIds[prevIdx];
+                        var prevNode = getNodeById(prevNodeId, _curNodeList);
+                        var prevDate = undefined;
+                        if (prevNode['data'] && prevNode['data'].length > 0){
+                            var prevDateList = prevNode['data'].map(function(result){
+                                return result['date'] && result['date'] !== 'nan' && result['date'] !== 'NA'
+                            });
+                            prevDate = maxStringArray(prevDateList);
+                        } else {
+                            if (prevNode['date'] !== 'nan' && prevNode['date'] !== 'NA'){
+                                prevDate = prevNode['date'];
+                            }
+                        }
+                        if ( ['fit','easy','O'].indexOf(prevNode['group']) === -1 ){
+                            if(prevDate && prevDate > _date){
+                                return _curNodeList
+                            } else {
+                                if(_rememberNumber >= 0){
+                                    for(var nodeIdx = 0; nodeIdx<_curNodeList.length; nodeIdx++){
+                                        if(_curNodeList[nodeIdx]['id'] === prevNodeId){
+                                            _curNodeList[nodeIdx]['group'] = 'guessO';
+                                            break;
+                                        }
+                                    }
+                                    _curNodeList = recursiveFillLearnedNode( prevNodeId, _date, _curNodeList, _curEdgeList, _rememberNumber )
+                                } 
+                            }   
+                        }
+                    }
+                    return _curNodeList
+                }
+
                 curNodeList = jQuery.extend(true, [], nodeListTmp);
                 curEdgeList = changeEdgeColor(result_obj, curEdgeList);
                 setAndRedrawNetwork();
             }
+
+            function setLevel(_curNodeList, _curEdgeList){
+                var startNodeIdList = getStartNode(_curNodeList, _curEdgeList)
+                var singleNodeIdList = getSingleNode(_curNodeList, _curEdgeList)
+                
+                function recursiveSetLevel( _curStartIdList, _curNodeList, _curEdgeList, _curLevel){
+                    var nextLevelIdList = [];
+                    for(var i=0; i<_curNodeList.length; i++){
+                        var _curNode = _curNodeList[i];
+                        if(_curStartIdList.indexOf(_curNode['id']) !== -1 ){
+                            if(!_curNodeList[i]['level']){
+                                console.log("no level set level " + _curLevel)
+                                _curNodeList[i]['level'] = _curLevel;
+                                nextLevelIdList = nextLevelIdList.concat( _curEdgeList.reduce(function(result, edge){
+                                    if(edge['from'] === _curNode['id']){
+                                        result.push(edge['to'])
+                                    }
+                                    return result
+                                } ,[]) );
+                            }
+                        }
+                    }
+                    if(nextLevelIdList.length > 0){
+                        _curNodeList = recursiveSetLevel(nextLevelIdList, _curNodeList, _curEdgeList, _curLevel+1)
+                    }
+                    return _curNodeList
+                }
+                _curNodeList = recursiveSetLevel(startNodeIdList.concat(singleNodeIdList), _curNodeList, _curEdgeList, 0)
+                return _curNodeList
+            }
+
+            function maxStringArray(strArray){
+                return strArray.reduce(function (a, b) { 
+                    if (a > b) return a 
+                    else return b
+                })
+            }
+            function filterEdgeByNodeList(_curNodeList, _curEdgeList){
+                if (_curNodeList.length !== curNodeList.length) {
+                    var _curNodeIdList = _curNodeList.map(function (node) {
+                        return node['id']
+                    });
+                    var _curEdgeList = _curEdgeList.filter(function (edge) {
+                        return _curNodeIdList.indexOf(edge['from']) !== -1 && _curNodeIdList.indexOf(edge['to']) !== -1
+                    });
+                }
+                return _curEdgeList
+            }
             function getStartNode(_curNodeList, _curEdgeList){
+                _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
+
                 var startNodeList = [];
                 for (var i = 0; i< _curEdgeList.length; i++){
                     var edgeObj = _curEdgeList[i];
@@ -548,20 +739,41 @@
                         }
                     }
                 }
-                // handle the lonely island
-                for (var i = 0; i<_curNodeList.length; i++){
-                    var nodeObj = _curNodeList[i];
-                    var nodeId = nodeObj['id'];
-                    var filterEdgeList = _curEdgeList.filter(function(edge){
-                        return edge['from'] === nodeId || edge['to'] === nodeId
+                return startNodeList
+            }
+            function getEndNode(_curNodeList, _curEdgeList) {
+                var endNodeIdList = [];
+                for (var i = 0; i < _curEdgeList.length; i++) {
+                    var edgeObj = _curEdgeList[i];
+                    var toNode = edgeObj['to'];
+                    var filterEdgeList = _curEdgeList.filter(function (edge) {
+                        return edge['from'] === toNode
                     });
-                    if(filterEdgeList.length === 0){
-                        if (startNodeList.indexOf(nodeId) === -1) {
-                            startNodeList.push(nodeId);
+                    if (filterEdgeList.length === 0) {
+                        if (endNodeIdList.indexOf(toNode) === -1) {
+                            endNodeIdList.push(toNode);
                         }
                     }
                 }
-                return startNodeList
+                return endNodeIdList
+            }
+            function getSingleNode(_curNodeList, _curEdgeList) {
+                _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
+                // handle the lonely island
+                var singleNodeIdList = [];
+                for (var i = 0; i < _curNodeList.length; i++) {
+                    var nodeObj = _curNodeList[i];
+                    var nodeId = nodeObj['id'];
+                    var filterEdgeList = _curEdgeList.filter(function (edge) {
+                        return edge['from'] === nodeId || edge['to'] === nodeId
+                    });
+                    if (filterEdgeList.length === 0) {
+                        if (singleNodeIdList.indexOf(nodeId) === -1) {
+                            singleNodeIdList.push(nodeId);
+                        }
+                    }
+                }
+                return singleNodeIdList
             }
             function getNodeById(nodeId, _curNodeList) {
                 var matchNode = _curNodeList.filter(function (node) {
@@ -622,14 +834,71 @@
             }
             function updateStartPoint(_curNodeList, _curEdgeList){
                 var searchListDict = {
+                    "learned": ['O', 'easy', 'fit'],
                     "not_sure": ['T', 'under5'],
                     "not_learned": ['X', 'not_fit'],
                 }
-                var startNodeIdList = getStartNode(_curNodeList, _curEdgeList);
-                var startPointList = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_learned'], true);
-                if (startPointList.length === 0){
-                    startPointList = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_sure'], true);
+
+                var correctList = _curNodeList.filter(function(node){
+                    return searchListDict['learned'].indexOf(node['group']) !== -1
+                });
+                var wrongList = _curNodeList.filter(function (node) {
+                    return searchListDict['not_learned'].indexOf(node['group']) !== -1
+                });
+                var notSureList = _curNodeList.filter(function (node) {
+                    return searchListDict['not_sure'].indexOf(node['group']) !== -1
+                });
+                if(correctList.length === 0 && wrongList.length === 0 && notSureList.length === 0){
+                    $("#startPointText")[0].innerText = "沒有資料。";
+                    return
                 }
+
+                // initialize the list
+                var startPointIdList = [];
+                var startPointList = [];
+                // If the information is not enough to decide the start point, we set the start point to the begin of the cg
+                if(correctList.length === 0 && wrongList.length === 0 && notSureList.length !== 0){
+                    var startNotSureNodeIdList = getStartNode(notSureList, _curEdgeList).concat(getSingleNode(notSureList, _curEdgeList));
+                    for(var s_id=0; s_id < startNotSureNodeIdList.length; s_id++){
+                        var startNodeId = startNotSureNodeIdList[s_id];
+                        var startNode = getNodeById(startNodeId, notSureList);
+                        var sameCgNodeList = _curNodeList.filter(function(node){
+                            return node['cg'] === startNode['cg'] && searchListDict['learned'].concat(['guessO']).indexOf(node['group']) === -1
+                        });
+                        startPointIdList = startPointIdList.concat(getStartNode(sameCgNodeList, _curEdgeList)
+                                                           .concat(getSingleNode(sameCgNodeList, _curEdgeList)));
+                        startPointList = startPointIdList.map(function(node_id){
+                            return getNodeById(node_id, sameCgNodeList)
+                        });
+                    }
+                } else if (wrongList.length !== 0) {
+                    // in this case, we should find the head of the chapter
+                    var startNodeIdList = getStartNode(_curNodeList, _curEdgeList);
+                    startNodeIdList = startNodeIdList.concat(getSingleNode(_curNodeList, _curEdgeList));
+                    startPointListTmp = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_learned'], true);
+                    for(var s_id=0; s_id<startPointListTmp.length; s_id++){
+                        var startPointTmp = startPointListTmp[s_id];
+                        var chapterName = startPointTmp['id'].split("_")[0];
+                        var sameChapterNodeList = _curNodeList.filter(function(node){
+                            return node['id'].split("_")[0] === chapterName  && searchListDict['learned'].concat(['guessO']).indexOf(node['group']) === -1
+                        });
+                        startPointIdList = startPointIdList.concat(getStartNode(sameChapterNodeList, _curEdgeList))
+                                                           .concat(getSingleNode(sameChapterNodeList, _curEdgeList));
+                        startPointList = startPointIdList.map(function (node_id) {
+                            console.log(node_id)
+                            console.log(sameCgNodeList)
+                            return getNodeById(node_id, sameChapterNodeList)
+                        });
+                    }
+                }
+                
+                
+                // var startNodeIdList = getStartNode(_curNodeList, _curEdgeList);
+                // startNodeIdList = startNodeIdList.concat(getSingleNode(_curNodeList, _curEdgeList));
+                // var startPointList = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_learned'], true);
+                // if (startPointList.length === 0){
+                //     startPointList = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_sure'], true);
+                // }
                 if (startPointList.length === 0) {
                     $("#startPointText")[0].innerText = "沒有推薦的起始點。";
                 } else {
@@ -652,6 +921,8 @@
                 },
                 edges:{
                     arrows: 'to',
+                    arrowStrikethrough: false,
+                    smooth: false,
                 },
                 locales: {
                     jy: {
@@ -706,20 +977,25 @@
                     },
                 },
                 layout:{
-                    randomSeed: 954201,
+                    //randomSeed: 954201,
                     hierarchical: {
                         enabled: true,
+                        direction: "UD",
                         edgeMinimization: true,
                         levelSeparation: 150,
-                        nodeSpacing: 400,
+                        nodeSpacing: 425,
                         blockShifting: false,
-                        sortMethod: 'directed',
+                        parentCentralization: true,
+                        sortMethod: 'directed',//'hubsize',
                     },
                 },
                 groups:{
                     O: {color:{background:'lawngreen'}, borderWidth: 3},
                     T: {color:{background:'yellow'}, borderWidth: 3},
                     X: {color:{background:'lightcoral'}, borderWidth: 3},
+                    guessO: { color: { background: 'lawngreen' }, borderWidth: 0 },
+                    guessT: { color: { background: 'yellow' }, borderWidth: 0 },
+                    guessX: { color: { background: 'lightcoral' }, borderWidth: 0 },
                     JY: {color:{background:'white'}, borderWidth: 3},
                     under5: {color:{background:'LightGoldenRodYellow'}, borderWidth: 3},
                     fit: {color:{background:'lightgreen'}, borderWidth: 3},
@@ -730,6 +1006,16 @@
                 },
                 physics:{
                     enabled: false,
+                    stabilization: {
+                        onlyDynamicEdges: true,
+                    },
+                    // hierarchicalRepulsion: {
+                    //     centralGravity: 0,
+                    //     springLength: 150,
+                    //     nodeDistance: 200
+                    // },
+                    // minVelocity: 0.75,
+                    // solver: "hierarchicalRepulsion",
                 },
             };
             var network = undefined;
@@ -753,7 +1039,7 @@
             function initialGraphElement(relation_path){
                 var f1 = $.ajax({
                     type: "GET",
-                    url: "https://dl.dropbox.com/s/kd8tyzom2hjr81r/yisheng_fraction_in_line.csv",
+                    url: "https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",//"https://dl.dropbox.com/s/kd8tyzom2hjr81r/yisheng_fraction_in_line.csv",
                     dataType: "text",
                     success: function(data) { 
                         relationList = processData(data);
@@ -774,7 +1060,7 @@
                 });
                 var f3 = $.ajax({
                     type: "GET",
-                    url: "https://dl.dropbox.com/s/doe733fgrptm9ap/live_exercise.csv",
+                    url: "https://dl.dropbox.com/s/gce26byflmuq7ch/live_exercise.csv",
                     dataType: "text",
                     success: function(data) { 
                         liveExercise = processData(data);
@@ -800,6 +1086,7 @@
                 w.done(function(){
                     curNodeList = jQuery.extend(true, [], nodeList);;
                     curEdgeList = jQuery.extend(true, [], yishengList);
+                    curNodeList = setLevel(curNodeList, curEdgeList);
                     curRelation = "宜陞";
                     initial_graph();
                     $("#dropdownNetworkButton").removeAttr("disabled");
@@ -865,7 +1152,7 @@
                 }
                 return [section_list, section_edge_list]
             }
-            function initial_graph(n_list, e_list){
+            function initial_graph(){
                 // create a network
                 var container = document.getElementById('cg_network');
                 
@@ -898,7 +1185,7 @@
                 setAndRedrawNetwork();
             }
             function setAndRedrawNetwork(){
-
+                curNodeList = setLevel(curNodeList, curEdgeList);
                 //updateStartPoint(curNodeList, curEdgeList);
                 network.setData({
                     nodes: new vis.DataSet(curNodeList),
@@ -1099,6 +1386,7 @@
             </div>
         </span>
         <span id="red_edge" style="border:1px solid red; margin-left: 10px;"></span>
+        <span id="guessNode" style="margin-left: 10px; display: inline-block;"></span>
     </div>
     <div class="start-point-container">
         <span id="startPointText"></span>
