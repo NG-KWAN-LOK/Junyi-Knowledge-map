@@ -12,6 +12,9 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
         <!-- filesaver -->
         <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.js"></script>
+        <!-- graph class -->
+        <script type="text/javascript" src="./GraphUtil.js"></script>
+        <script type="text/javascript" src="./GraphDataSource.js"></script>
 
         <style type="text/css">
             #cg_network {
@@ -52,201 +55,43 @@
             var fraction_cg = ["3-n-11","4-n-07","4-n-08","4-n-09","4-n-10",
                                "5-n-06","5-n-07","5-n-08","5-n-09","5-n-13",
                                "6-n-03","6-n-04","6-n-05","6-n-09","6-n-10"];
-            var cgToExercise = {
-                "3-n-11": ["menfs3ce"],
-                "4-n-07": [],
-                "4-n-08": ["menfs4cf","menfs4cd"],
-                "4-n-09": [],
-                "4-n-10": [],
-                "5-n-06": ["menfs4ae"],
-                "5-n-07": ["menfs5ba"],
-                "5-n-08": ["m3afs-cd"],
-                "5-n-09": ["m3afs-ch"],
-                "5-n-13": ["mencs5ci"],
-                "6-n-03": ["menzs6af","menzs6aj"],
-                "6-n-04": ["menfs6ak"],
-                "6-n-05": ["menfs6ag"],
-                "6-n-09": ["menfs6bc"],
-                "6-n-10": ["m3abs-ca"],
-            }
-            var notvalidWeight = [
-                    [0., 0, 0, 0, 0, 0.12568306, 0.15766739, 0.34773218, 0.25161987, 0.15658747, 0.39441341, 0.29273743, 0.11396648, 0.1575419, 0.18435754,],
-                    [0, 0., 0.05201178, 0.13735178, 0.11688312, 0.14920949, 0.14130435, 0.19960474, 0.1916996, 0.32509881, 0.02826511, 0.09259259, 0.00779727, 0.10721248, 0.05354752,],
-                    [0, 0.17369971, 0., 0.06324111, 0.21478521, 0.07509881, 0.06818182, 0.09486166, 0.09782609, 0.16205534, 0.13060429, 0.35575049, 0.06725146, 0.42202729, 0.20749665,],
-                    [0, 0.35474308, 0.08300395, 0., 0.27173913, 0.23418972, 0.22529644, 0.30039526, 0.28162055, 0.49901186, 0, 0, 0, 0, 0,],
-                    [0, 0.1978022, 0.1028971, 0.16304348, 0., 0.1916996, 0.1798419, 0.24901186, 0.23418972, 0.41501976, 0.1010101, 0.24545455, 0.03535354, 0.29292929, 0.14486639,],
-                    [0.02076503, 0.33794466, 0.09288538, 0.2055336, 0.27173913, 0., 0.19763514, 0.38344595, 0.30658784, 0.31883446, 0.52318393, 0.40108192, 0.16151468, 0.20401855, 0.23879444,],
-                    [0.0237581, 0.32608696, 0.08596838, 0.19268775, 0.25592885, 0.16089527, 0., 0.35340532, 0.27574751, 0.31436877, 0.47976012, 0.37331334, 0.13568216, 0.1934033, 0.22563718,],
-                    [0.0075594, 0.26284585, 0.05731225, 0.14624506, 0.20355731, 0.09839527, 0.10548173, 0., 0.15033223, 0.20182724, 0.19415292, 0.13793103, 0.05922039, 0.05997001, 0.08170915,],
-                    [0.02159827, 0.28458498, 0.08399209, 0.15711462, 0.21837945, 0.13302365, 0.13870432, 0.26121262, 0., 0.24335548, 0.33208396, 0.24137931, 0.10194903, 0.13418291, 0.15517241,],
-                    [0.02051836, 0.09288538, 0.02272727, 0.04940711, 0.07411067, 0.10726351, 0.13496678, 0.27034884, 0.20099668, 0., 0.46326837, 0.34632684, 0.13718141, 0.17841079, 0.22113943,],
-                    [0.00782123, 0.06335283, 0.07212476, 0, 0.12222222, 0.05255023, 0.06521739, 0.12743628, 0.09295352, 0.05997001, 0., 0.10639938, 0.02235929, 0.0844256, 0.07559395,],
-                    [0.01452514, 0.14230019, 0.13840156, 0, 0.21515152, 0.08423493, 0.1131934, 0.22563718, 0.15667166, 0.09745127, 0.16499614, 0, 0.04548959, 0.16576715, 0.12440605,],
-                    [0.00782123, 0.04678363, 0.05945419, 0, 0.0979798, 0.06877898, 0.06746627, 0.17916042, 0.12743628, 0.08245877, 0.11063994, 0.11295297, 0., 0.08211257, 0.08509719,],
-                    [0.00893855, 0.09356725, 0.10233918, 0, 0.15757576, 0.05332303, 0.06746627, 0.15292354, 0.11769115, 0.06146927, 0.10717039, 0.1464919, 0.02698535, 0., 0.09287257,],
-                    [0.01899441, 0.18206158, 0.18607764, 0, 0.30098453, 0.17928903, 0.22038981, 0.42428786, 0.32533733, 0.22713643, 0.31274298, 0.35680346, 0.10410367, 0.27343413, 0.,]]
-            var cgNodeList = [
-                { id: '3-n-11', label: '3-n-11\n認識分數、同分母比較/加減', name: '3-n-11\n認識分數、同分母比較/加減', cg: '3-n-11' },
-                { id: '4-n-07', label: '4-n-07\n整數相除的意涵', name: '4-n-07\n整數相除的意涵', cg: '4-n-07' },
-                { id: '4-n-08', label: '4-n-08\n真分數、假分數與帶分數', name: '4-n-08\n真分數、假分數與帶分數', cg: '4-n-08' },
-                { id: '4-n-09', label: '4-n-09\n等值分數、異分母分數比較', name: '4-n-09\n等值分數、異分母分數比較', cg: '4-n-09' },
-                { id: '4-n-10', label: '4-n-10\n分數標記在數線', name: '4-n-10\n分數標記在數線', cg: '4-n-10' },
-                { id: '5-n-06', label: '5-n-06\n約分、擴分、等值分數', name: '5-n-06\n約分、擴分、等值分數', cg: '5-n-06' },
-                { id: '5-n-07', label: '5-n-07\n通分、異分母分數比較/加減', name: '5-n-07\n通分、異分母分數比較/加減', cg: '5-n-07' },
-                { id: '5-n-08', label: '5-n-08\n分數乘法', name: '5-n-08\n分數乘法', cg: '5-n-08' },
-                { id: '5-n-09', label: '5-n-09\n除數為整數的分數除法', name: '5-n-09\n除數為整數的分數除法', cg: '5-n-09' },
-                { id: '5-n-13', label: '5-n-13\n分數、小數標記在數線', name: '5-n-13\n分數、小數標記在數線', cg: '5-n-13' },
-                { id: '6-n-03', label: '6-n-03\n將分數約成最簡分數', name: '6-n-03\n將分數約成最簡分數', cg: '6-n-03' },
-                { id: '6-n-04', label: '6-n-04\n分數除法', name: '6-n-04\n分數除法', cg: '6-n-04' },
-                { id: '6-n-05', label: '6-n-05\n分數的兩步驟問題', name: '6-n-05\n分數的兩步驟問題', cg: '6-n-05' },
-                { id: '6-n-09', label: '6-n-09\n認識比和比值', name: '6-n-09\n認識比和比值', cg: '6-n-09' },
-                { id: '6-n-10', label: '6-n-10\n理解正比的意義', name: '6-n-10\n理解正比的意義', cg: '6-n-10' },
-            ];
-            // temp: for discuss
-            var statusStrArray = [
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '0', '246/1335=0.18', '392/1335=0.29', '352/1335=0.26', '608/1335=0.46', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '227/1335=0.17', '0', '337/1335=0.25', '329/1335=0.25', '593/1335=0.44', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '193/1335=0.14', '157/1335=0.12', '0', '226/1335=0.17', '441/1335=0.33', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '212/1335=0.16', '208/1335=0.16', '285/1335=0.21', '0', '483/1335=0.36', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '64/1335=0.05', '68/1335=0.05', '96/1335=0.07', '79/1335=0.06', '0', '0', '0', '0', '0', '0'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '127/1423=0.09', '52/789=0.07', '46/903=0.05', '94/1423=0.07'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '341/1423=0.24', '0', '76/789=0.1', '100/903=0.11', '153/1423=0.11'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '279/789=0.35', '182/789=0.23', '0', '85/530=0.16', '127/789=0.16'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '228/903=0.25', '162/903=0.18', '50/530=0.09', '0', '112/903=0.12'],
-                ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '682/1423=0.48', '527/1423=0.37', '226/789=0.29', '293/903=0.32', '0']];
-            var correctRateDict = {
-                '4-n-08': 0.48,
-                '6-n-05': 0.50,
-                '3-n-11': 0.55,
-                '5-n-06': 0.42,
-                '5-n-13': 0.83,
-                '6-n-04': 0.63,
-                '6-n-09': 0.58,
-                '5-n-09': 0.53,
-                '6-n-03': 0.78,
-                '6-n-10': 0.37,
-                '5-n-07': 0.44,
-                '5-n-08': 0.57
-            }
-
-            // yisheng
-            var cgYishengList = [
-                { "from": "3-n-11", "to": "4-n-08" },
-                { "from": "4-n-08", "to": "4-n-09" },
-                { "from": "4-n-09", "to": "5-n-06" },
-                { "from": "5-n-04", "to": "5-n-06" },
-                { "from": "5-n-06", "to": "5-n-07" },
-                { "from": "5-n-04", "to": "5-n-07" },
-                { "from": "5-n-05", "to": "5-n-07" },
-                { "from": "5-n-06", "to": "5-n-08" },
-                { "from": "5-n-08", "to": "5-n-09" },
-                { "from": "4-n-10", "to": "5-n-13" },
-                { "from": "5-n-06", "to": "6-n-03" },
-                { "from": "6-n-02", "to": "6-n-03" },
-                { "from": "5-n-09", "to": "6-n-04" },
-                { "from": "5-n-06", "to": "6-n-09" },
-                { "from": "5-n-14", "to": "6-n-09" },
-                { "from": "6-n-09", "to": "6-n-10" },
-                { "from": "3-n-11", "to": "4-n-07" },
-                { "from": "4-n-07", "to": "6-n-09" },
-                { "from": "4-n-08", "to": "4-n-10" }
-            ];
-            cgYishengList = updateEdgesWeight(cgYishengList);
-
-            // inChai
-            var cgInchaiList = [
-                { from: '3-n-11', to: '4-n-07' },
-                { from: '3-n-11', to: '4-n-09' },
-                { from: '3-n-11', to: '4-n-08' },
-                { from: '4-n-08', to: '4-n-10' },
-                { from: '4-n-09', to: '5-n-06' },
-                { from: '5-n-06', to: '5-n-07' },
-                { from: '4-n-08', to: '5-n-07' },
-                { from: '4-n-08', to: '5-n-08' },
-                { from: '4-n-08', to: '5-n-09' },
-                { from: '4-n-10', to: '5-n-13' },
-                { from: '6-n-09', to: '6-n-10' }
-            ];
-            cgInchaiList = updateEdgesWeight(cgInchaiList); 
             
-            function updateEdgesWeight(edges_list){
-                for(var i=0; i < edges_list.length; i++){
-                    edge = edges_list[i];
-                    from = edge['from'];
-                    to = edge['to'];
-                    ind1 = fraction_cg.indexOf(from);
-                    ind2 = fraction_cg.indexOf(to);
-                    if (ind1>=0 && ind2>=0){
-                        weight = notvalidWeight[ind1][ind2];
-                        if (weight > 0){
-                            edges_list[i]['width'] = (1-weight) * 8;
-                            //edges_list[i]['label'] = statusStrArray[ind1][ind2]; // temp
-                        }
-                    }
-                }
-                return edges_list
-            }
+            
+            
+            // temp: for discuss
+            // var statusStrArray = [
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '0', '246/1335=0.18', '392/1335=0.29', '352/1335=0.26', '608/1335=0.46', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '227/1335=0.17', '0', '337/1335=0.25', '329/1335=0.25', '593/1335=0.44', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '193/1335=0.14', '157/1335=0.12', '0', '226/1335=0.17', '441/1335=0.33', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '212/1335=0.16', '208/1335=0.16', '285/1335=0.21', '0', '483/1335=0.36', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '64/1335=0.05', '68/1335=0.05', '96/1335=0.07', '79/1335=0.06', '0', '0', '0', '0', '0', '0'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '127/1423=0.09', '52/789=0.07', '46/903=0.05', '94/1423=0.07'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '341/1423=0.24', '0', '76/789=0.1', '100/903=0.11', '153/1423=0.11'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '279/789=0.35', '182/789=0.23', '0', '85/530=0.16', '127/789=0.16'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '228/903=0.25', '162/903=0.18', '50/530=0.09', '0', '112/903=0.12'],
+            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '682/1423=0.48', '527/1423=0.37', '226/789=0.29', '293/903=0.32', '0']];
+            // var correctRateDict = {
+            //     '4-n-08': 0.48,
+            //     '6-n-05': 0.50,
+            //     '3-n-11': 0.55,
+            //     '5-n-06': 0.42,
+            //     '5-n-13': 0.83,
+            //     '6-n-04': 0.63,
+            //     '6-n-09': 0.58,
+            //     '5-n-09': 0.53,
+            //     '6-n-03': 0.78,
+            //     '6-n-10': 0.37,
+            //     '5-n-07': 0.44,
+            //     '5-n-08': 0.57
+            // }
 
-            function cgToSection(cg){
-                var exerciseList = cgToExercise[cg] || [];
-                var sectionList = []
-                for(var idx=0; idx<exerciseList.length; idx++){
-                    sectionName = exToSection(exerciseList[idx]);
-                    if (sectionName){
-                        sectionList.push(sectionName);
-                    }
-                }
-                if (sectionList.length === 0){
-                    var cgFilterNodeList = curNodeList.filter(function(node){
-                        return node["cg"] === cg
-                    });
-                    sectionList = cgFilterNodeList.map(function(node){
-                        return node["id"]
-                    });
-                }
-                return sectionList;
-            }
-            function exToSection(exId){
-                filterExercise = liveExercise.filter(function(exercise){
-                    return exercise["content_id"] === exId
-                });
-                sectionName = "";
-                for(var i=0; i<filterExercise.length; i++){
-                    chapter = filterExercise[i]["chapter_title"];
-                    section = filterExercise[i]["section_title"];
-                    sectionName = chapter+"_"+section;
-                }
-                return [sectionName]
-            }
-            function exToCg(ex_id) {
-                filterExercise = liveExercise.filter(function (exercise) {
-                    return exercise["content_id"] === ex_id
-                });
-                cgName = [];
-                for (var i = 0; i < filterExercise.length; i++) {
-                    cg_id = filterExercise[i]["curriculum_guideline_id"];
-                    if (cgName.indexOf(cg_id) === -1){
-                        cgName.push(cg_id);
-                    }
-                }
-                return cgName
-            }
-            function getExName(exId){
-                filterExercise = liveExercise.filter(function(exercise){
-                    return exercise["content_id"] === exId
-                });
-                exerciseName = "";
-                for(var i=0; i<filterExercise.length; i++){
-                    exerciseName = filterExercise[i]["content_title"];
-                    break;
-                }
-                return exerciseName
-            }
+
+            
 
             function changeEdgeColor(student_result, edges_list){
                 var ret_edges_list = jQuery.extend(true, [], edges_list);
@@ -269,23 +114,7 @@
                 $("#red_edge")[0].innerHTML = "有 " + red_edge + " 條錯誤連線";
                 return ret_edges_list
             }
-
-            function loadJson(data){
-                if (!data){
-                    data = $("#cg_result")[0].value;
-                }
-                results_obj = jQuery.parseJSON(data);
-                $(".submit_junyi").show();
-                //junyi_obj = undefined;
-                updateStudentDropdown();
-            }
-            function loadJunyiJson(data){
-                if(!data){
-                    data = $("#junyi_result")[0].value;
-                }
-                junyi_obj = jQuery.parseJSON(data);
-                updateStudentDropdown();
-            }
+            //view
             function updateStudentDropdown(){
                 if (!results_obj){
                     return
@@ -318,6 +147,7 @@
                 $("#dropdownStudentButton").removeAttr("disabled")
                 $("#dropdownStudentButton")[0].innerHTML = "選擇學生";
             }
+            //view
             function updateDateDropdown(){
                 if(!results_obj){
                     alert("沒有載入測驗結果。");
@@ -354,6 +184,7 @@
                 }
                 $("#dropdownDateButton").removeAttr("disabled");
             }
+            //view
             function setEmail(email){
                 if(!email){ return }
 
@@ -363,174 +194,8 @@
                 changeNodeGroup(curTime);
                 $("#dropdownStudentButton")[0].innerHTML = email;
             }
-            function getRemedialResultByTime(time){
-                var remedial_result_tmp = results_obj[curEmail];
-                if (!remedial_result_tmp) {remedial_result_tmp = {};}
-                var remedial_result = {};
-                // 整理obj
-                if (time == 'all'){
-                    for(var cg in remedial_result_tmp){
-                        if (!CgLevel){
-                            sectionList = cgToSection(cg);
-                        } else {
-                            sectionList = [cg];
-                        }
-                        cg_obj = remedial_result_tmp[cg];
-                        if( Array.isArray(cg_obj) ){
-                            max_status = "";
-                            max_date = "";
-                            for(var i=0; i< cg_obj.length; i++){
-                                if (!max_status & !max_date){
-                                    max_status = cg_obj[i]['status'];
-                                    max_date = cg_obj[i]['date'];
-                                } else {
-                                    this_status = cg_obj[i]['status'];
-                                    if (this_status < max_status){ 
-                                        // because O < T < X
-                                        max_status = cg_obj[i]['status'];
-                                        max_date = cg_obj[i]['date'];
-                                    }
-                                }
-                            }
-                            for(var i=0; i<sectionList.length; i++){
-                                section = sectionList[i];
-                                remedial_result[section] = {
-                                    'status': max_status,
-                                    'date': max_date,
-                                }
-                            }
-                        } else {
-                            if(!cg_obj['status']){
-                                for(var i=0; i<sectionList.length; i++){
-                                    section = sectionList[i];
-                                    remedial_result[section] = {
-                                        'status': cg_obj,
-                                        'date': "NA",
-                                    };
-                                }
-                            } else {
-                                for(var i=0; i<sectionList.length; i++){
-                                    section = sectionList[i];
-                                    remedial_result[section] = cg_obj;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for(var cg in remedial_result_tmp){
-                        if (!CgLevel){
-                            sectionList = cgToSection(cg);
-                        } else {
-                            sectionList = [cg];
-                        }
-                        cg_obj = remedial_result_tmp[cg];
-                        if( Array.isArray(cg_obj) ){
-                            for(var i=0; i< cg_obj.length; i++){
-                                if(cg_obj[i]['date'] === time){
-                                    for(var j=0; j<sectionList.length; j++){
-                                        section = sectionList[j];
-                                        remedial_result[section] = cg_obj[i];
-                                    }
-                                    break;
-                                }
-                            }
-                        } else {
-                            if(cg_obj['date'] === time){
-                                for(var j=0; j<sectionList.length; j++){
-                                    section = sectionList[j];
-                                    remedial_result[section] = cg_obj;
-                                }
-                            }
-                        }
-                    }
-                }
-                $("#dropdownDateButton")[0].innerHTML = time==='all' ? "所有時間" : time ;
-                return remedial_result
-            }
-            function getJunyiResult(){
-                if (!junyi_obj){
-                    return {};
-                }
-                student_in_jy = junyi_obj[curEmail];
-                if (!student_in_jy){ student_in_jy = {}; }
-                var junyi_result = {};
-                var section_result = {}
-                for (var ex_id in student_in_jy){
-                    ex_result = student_in_jy[ex_id];
-                    ex_result["title"] = getExName(ex_id);
-                    var sectionNameList = CgLevel ? exToCg(ex_id) : exToSection(ex_id);
-                    for(var sec_idx=0; sec_idx < sectionNameList.length; sec_idx++){
-                        var sectionName = sectionNameList[sec_idx];
-                        if (!(sectionName in section_result)) {
-                            section_result[sectionName] = [];
-                        }
-                        section_result[sectionName].push(ex_result);
-                    }
-                }
-                for(var sectionName in section_result){
-                    junyi_result[sectionName] = summaryResult(section_result[sectionName])
-                }
-                return junyi_result
-            }
-            function summaryResult(resultList){
-                desc = [];
-                data = [];
-                status = "";
-                count = {
-                    "under5": 0,
-                    "easy": 0,
-                    "fit": 0,
-                    "not_fit": 0,
-                };
-                status_word = {
-                    "under5": "還沒等級一",
-                    "easy": "已經會了",
-                    "fit": "學會",
-                    "not_fit": "不適合",
-                };
-                for (var i=0; i<resultList.length; i++){
-                    result = resultList[i];
-                    count[ result["status"] ] += 1;
-                    desc.push( result["date"]+'  '+result["title"] +'  '+status_word[ result["status"] ] );
-                    data.push( result );
-                }
-                desc = desc.join('\n');
-                max_count = 0;
-                for (var s in count){
-                    if(count[s] >= max_count){
-                        max_count = count[s];
-                        status = s;
-                    }
-                }
-                return {
-                    "status": status,
-                    "date": desc,
-                    "data": data,
-                }
-            }
-            function mergeTwoResult( remedial_result, junyi_result){
-                var result_obj = jQuery.extend(true, {}, remedial_result);
-                for(var sectionName in junyi_result){
-                    if(!(sectionName in remedial_result)){
-                        result_obj[sectionName] = junyi_result[sectionName];
-                    } else {
-                        // handle the conflict status
-                        if ((remedial_result[sectionName]['status'] === 'O' && junyi_result[sectionName]['status'] === 'not_fit') ||
-                            (remedial_result[sectionName]['status'] === 'X' && 
-                                (junyi_result[sectionName]['status'] === 'easy' || junyi_result[sectionName]['status'] === 'fit'))){
-                            result_obj[sectionName]['status'] = 'conflict';
-                        }
-                        // combine the date
-                        if (remedial_result[sectionName]['date'] !== 'NA' || remedial_result[sectionName]['date'] !== 'nan'){
-                            result_obj[sectionName]['date'] = remedial_result[sectionName]['date'] + ' 補救結果：' + remedial_result[sectionName]['status'] + '\n' + junyi_result[sectionName]['date'];
-                        } else {
-                            result_obj[sectionName]['date'] = '補救結果：'+ remedial_result[sectionName]['status']+'\n'+junyi_result[sectionName]['date'];
-                        }
-                        result_obj[sectionName]['data'] = junyi_result[sectionName]['data'].push(junyi_result[sectionName])
-                    }
-                }
-                return result_obj
-            }
+            
+            //view
             function changeNodeGroup(time){
                 if(!time){
                     time = 'all';
@@ -632,11 +297,12 @@
                 }
                 // when get the learned node change the previous node to green
                 function recursiveFillLearnedNode(_nodeId, _date, _curNodeList, _curEdgeList, _rememberNumber){
-                    var prevNodeIds = _curEdgeList.filter(function(edge){
-                        return edge['to'] == _nodeId
-                    }).map(function(edge){
-                        return edge['from']
-                    });
+                    var prevNodeIds = _curEdgeList.reduce(function(result, edge){
+                        if(edge["to"] === _nodeId){
+                            result.push(edge["from"]);
+                        }
+                        return result
+                    },[]);
                     _rememberNumber = _rememberNumber - prevNodeIds.length;
                     for ( var prevIdx = 0; prevIdx < prevNodeIds.length; prevIdx++ ) {
                         var prevNodeId = prevNodeIds[prevIdx];
@@ -675,116 +341,86 @@
                 curEdgeList = changeEdgeColor(result_obj, curEdgeList);
                 setAndRedrawNetwork();
             }
+            
+            // //graph util
+            // function filterEdgeByNodeList(_curNodeList, _curEdgeList){
+            //     if (_curNodeList.length !== curNodeList.length) {
+            //         var _curNodeIdList = _curNodeList.map(function (node) {
+            //             return node['id']
+            //         });
+            //         var _curEdgeList = _curEdgeList.filter(function (edge) {
+            //             return _curNodeIdList.indexOf(edge['from']) !== -1 && _curNodeIdList.indexOf(edge['to']) !== -1
+            //         });
+            //     }
+            //     return _curEdgeList
+            // }
+            // //graph util
+            // function getStartNode(_curNodeList, _curEdgeList){
+            //     _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
 
-            function setLevel(_curNodeList, _curEdgeList){
-                var startNodeIdList = getStartNode(_curNodeList, _curEdgeList)
-                var singleNodeIdList = getSingleNode(_curNodeList, _curEdgeList)
-                
-                function recursiveSetLevel( _curStartIdList, _curNodeList, _curEdgeList, _curLevel){
-                    var nextLevelIdList = [];
-                    for(var i=0; i<_curNodeList.length; i++){
-                        var _curNode = _curNodeList[i];
-                        if(_curStartIdList.indexOf(_curNode['id']) !== -1 ){
-                            if(!_curNodeList[i]['level']){
-                                console.log("no level set level " + _curLevel)
-                                _curNodeList[i]['level'] = _curLevel;
-                                nextLevelIdList = nextLevelIdList.concat( _curEdgeList.reduce(function(result, edge){
-                                    if(edge['from'] === _curNode['id']){
-                                        result.push(edge['to'])
-                                    }
-                                    return result
-                                } ,[]) );
-                            }
-                        }
-                    }
-                    if(nextLevelIdList.length > 0){
-                        _curNodeList = recursiveSetLevel(nextLevelIdList, _curNodeList, _curEdgeList, _curLevel+1)
-                    }
-                    return _curNodeList
-                }
-                _curNodeList = recursiveSetLevel(startNodeIdList.concat(singleNodeIdList), _curNodeList, _curEdgeList, 0)
-                return _curNodeList
-            }
-
-            function maxStringArray(strArray){
-                return strArray.reduce(function (a, b) { 
-                    if (a > b) return a 
-                    else return b
-                })
-            }
-            function filterEdgeByNodeList(_curNodeList, _curEdgeList){
-                if (_curNodeList.length !== curNodeList.length) {
-                    var _curNodeIdList = _curNodeList.map(function (node) {
-                        return node['id']
-                    });
-                    var _curEdgeList = _curEdgeList.filter(function (edge) {
-                        return _curNodeIdList.indexOf(edge['from']) !== -1 && _curNodeIdList.indexOf(edge['to']) !== -1
-                    });
-                }
-                return _curEdgeList
-            }
-            function getStartNode(_curNodeList, _curEdgeList){
-                _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
-
-                var startNodeList = [];
-                for (var i = 0; i< _curEdgeList.length; i++){
-                    var edgeObj = _curEdgeList[i];
-                    var fromNode = edgeObj['from'];
-                    var filterEdgeList = _curEdgeList.filter(function(edge){
-                        return edge['to'] === fromNode
-                    });
-                    if(filterEdgeList.length === 0){
-                        if(startNodeList.indexOf(fromNode) === -1){
-                            startNodeList.push(fromNode);
-                        }
-                    }
-                }
-                return startNodeList
-            }
-            function getEndNode(_curNodeList, _curEdgeList) {
-                var endNodeIdList = [];
-                for (var i = 0; i < _curEdgeList.length; i++) {
-                    var edgeObj = _curEdgeList[i];
-                    var toNode = edgeObj['to'];
-                    var filterEdgeList = _curEdgeList.filter(function (edge) {
-                        return edge['from'] === toNode
-                    });
-                    if (filterEdgeList.length === 0) {
-                        if (endNodeIdList.indexOf(toNode) === -1) {
-                            endNodeIdList.push(toNode);
-                        }
-                    }
-                }
-                return endNodeIdList
-            }
-            function getSingleNode(_curNodeList, _curEdgeList) {
-                _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
-                // handle the lonely island
-                var singleNodeIdList = [];
-                for (var i = 0; i < _curNodeList.length; i++) {
-                    var nodeObj = _curNodeList[i];
-                    var nodeId = nodeObj['id'];
-                    var filterEdgeList = _curEdgeList.filter(function (edge) {
-                        return edge['from'] === nodeId || edge['to'] === nodeId
-                    });
-                    if (filterEdgeList.length === 0) {
-                        if (singleNodeIdList.indexOf(nodeId) === -1) {
-                            singleNodeIdList.push(nodeId);
-                        }
-                    }
-                }
-                return singleNodeIdList
-            }
-            function getNodeById(nodeId, _curNodeList) {
-                var matchNode = _curNodeList.filter(function (node) {
-                    return node['id'] === nodeId
-                });
-                if (matchNode.length === 0) {
-                    return {}
-                } else {
-                    return matchNode[0]
-                }
-            }
+            //     var startNodeList = [];
+            //     for (var i = 0; i< _curEdgeList.length; i++){
+            //         var edgeObj = _curEdgeList[i];
+            //         var fromNode = edgeObj['from'];
+            //         var filterEdgeList = _curEdgeList.filter(function(edge){
+            //             return edge['to'] === fromNode
+            //         });
+            //         if(filterEdgeList.length === 0){
+            //             if(startNodeList.indexOf(fromNode) === -1){
+            //                 startNodeList.push(fromNode);
+            //             }
+            //         }
+            //     }
+            //     return startNodeList
+            // }
+            // //graph util
+            // function getEndNode(_curNodeList, _curEdgeList) {
+            //     var endNodeIdList = [];
+            //     for (var i = 0; i < _curEdgeList.length; i++) {
+            //         var edgeObj = _curEdgeList[i];
+            //         var toNode = edgeObj['to'];
+            //         var filterEdgeList = _curEdgeList.filter(function (edge) {
+            //             return edge['from'] === toNode
+            //         });
+            //         if (filterEdgeList.length === 0) {
+            //             if (endNodeIdList.indexOf(toNode) === -1) {
+            //                 endNodeIdList.push(toNode);
+            //             }
+            //         }
+            //     }
+            //     return endNodeIdList
+            // }
+            // //graph util
+            // function getSingleNode(_curNodeList, _curEdgeList) {
+            //     _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
+            //     // handle the lonely island
+            //     var singleNodeIdList = [];
+            //     for (var i = 0; i < _curNodeList.length; i++) {
+            //         var nodeObj = _curNodeList[i];
+            //         var nodeId = nodeObj['id'];
+            //         var filterEdgeList = _curEdgeList.filter(function (edge) {
+            //             return edge['from'] === nodeId || edge['to'] === nodeId
+            //         });
+            //         if (filterEdgeList.length === 0) {
+            //             if (singleNodeIdList.indexOf(nodeId) === -1) {
+            //                 singleNodeIdList.push(nodeId);
+            //             }
+            //         }
+            //     }
+            //     return singleNodeIdList
+            // }
+            // // graph util
+            // function getNodeById(nodeId, _curNodeList) {
+            //     var matchNode = _curNodeList.filter(function (node) {
+            //         return node['id'] === nodeId
+            //     });
+            //     if (matchNode.length === 0) {
+            //         return {}
+            //     } else {
+            //         return matchNode[0]
+            //     }
+            // }
+            //view
             function recursiveFindStartPoint(curStartNodeIdList, _curNodeList, _curEdgeList, statusList, checkCurNode){
                 
                 var matchedNodeList = [];
@@ -803,12 +439,12 @@
                     }
                 }
 
-                var filterEdgeObj = _curEdgeList.filter(function(edge){
-                    return curStartNodeIdList.indexOf(edge['from']) >= 0
-                });
-                var nextNodeIdList = filterEdgeObj.map(function(edge){
-                    return edge['to']
-                });
+                var nextNodeIdList = _curEdgeList.reduce(function(result,edge){
+                    if(curStartNodeIdList.indexOf(edge['from']) !== -1){
+                        result.push(edge['to']);
+                    }
+                    return result
+                },[]);
                 
                 // make list unique first to reduce the loop
                 var uniqueObj = {};
@@ -832,6 +468,7 @@
                     return recursiveFindStartPoint(nextNodeIdList, _curNodeList, _curEdgeList, statusList, false)
                 }
             }
+            //view
             function updateStartPoint(_curNodeList, _curEdgeList){
                 var searchListDict = {
                     "learned": ['O', 'easy', 'fit'],
@@ -1032,126 +669,131 @@
 
             var editMode = false;
             var curEditGroup = "unknown";
+            var graphDataSource = new GraphDataSource();
             // load the relation we need to use
             $(document).ready(function() {
-                initialGraphElement();
+                graphDataSource.initialGraphElement();
             });
-            function initialGraphElement(relation_path){
-                var f1 = $.ajax({
-                    type: "GET",
-                    url: "https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",//"https://dl.dropbox.com/s/kd8tyzom2hjr81r/yisheng_fraction_in_line.csv",
-                    dataType: "text",
-                    success: function(data) { 
-                        relationList = processData(data);
-                        graphElement = create_graph_element(relationList);
-                        nodeList = graphElement[0];
-                        yishengList = graphElement[1];
-                    }
-                });
-                var f2 = $.ajax({
-                    type: "GET",
-                    url: "https://dl.dropbox.com/s/o9m8rjgo4uroara/inchai_fraction_in_line.csv",
-                    dataType: "text",
-                    success: function(data) { 
-                        relationList = processData(data);
-                        graphElement = create_graph_element(relationList);
-                        inchaiList = graphElement[1];
-                    }
-                });
-                var f3 = $.ajax({
-                    type: "GET",
-                    url: "https://dl.dropbox.com/s/gce26byflmuq7ch/live_exercise.csv",
-                    dataType: "text",
-                    success: function(data) { 
-                        liveExercise = processData(data);
-                    }
-                });
-                var f4 = $.ajax({
-                    type: "GET",
-                    url: "https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
-                    dataType: "text",
-                    success: function(data) { 
-                        loadJson(data);
-                    }
-                });
-                var f5 = $.ajax({
-                    type: "GET",
-                    url: "https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt",
-                    dataType: "text",
-                    success: function(data) { 
-                        loadJunyiJson(data);
-                    }
-                });
-                w = $.when(f1,f2,f3,f4,f5);
-                w.done(function(){
-                    curNodeList = jQuery.extend(true, [], nodeList);;
-                    curEdgeList = jQuery.extend(true, [], yishengList);
-                    curNodeList = setLevel(curNodeList, curEdgeList);
-                    curRelation = "宜陞";
-                    initial_graph();
-                    $("#dropdownNetworkButton").removeAttr("disabled");
-                    $("#editModeBtn").removeAttr("disabled");
-                });
-            }
-            function processData(allText) {
-                var allTextLines = allText.split(/\r\n|\n/);
-                var headers = allTextLines[0].split(',');
-                var lines = [];
+            // //data
+            // function initialGraphElement(relation_path){
+            //     var f1 = $.ajax({
+            //         type: "GET",
+            //         url: "https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",//"https://dl.dropbox.com/s/kd8tyzom2hjr81r/yisheng_fraction_in_line.csv",
+            //         dataType: "text",
+            //         success: function(data) { 
+            //             relationList = processData(data);
+            //             graphElement = create_graph_element(relationList);
+            //             nodeList = graphElement[0];
+            //             yishengList = graphElement[1];
+            //         }
+            //     });
+            //     var f2 = $.ajax({
+            //         type: "GET",
+            //         url: "https://dl.dropbox.com/s/o9m8rjgo4uroara/inchai_fraction_in_line.csv",
+            //         dataType: "text",
+            //         success: function(data) { 
+            //             relationList = processData(data);
+            //             graphElement = create_graph_element(relationList);
+            //             inchaiList = graphElement[1];
+            //         }
+            //     });
+            //     var f3 = $.ajax({
+            //         type: "GET",
+            //         url: "https://dl.dropbox.com/s/gce26byflmuq7ch/live_exercise.csv",
+            //         dataType: "text",
+            //         success: function(data) { 
+            //             liveExercise = processData(data);
+            //         }
+            //     });
+            //     var f4 = $.ajax({
+            //         type: "GET",
+            //         url: "https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
+            //         dataType: "text",
+            //         success: function(data) { 
+            //             loadJson(data);
+            //         }
+            //     });
+            //     var f5 = $.ajax({
+            //         type: "GET",
+            //         url: "https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt",
+            //         dataType: "text",
+            //         success: function(data) { 
+            //             loadJunyiJson(data);
+            //         }
+            //     });
+            //     w = $.when(f1,f2,f3,f4,f5);
+            //     w.done(function(){
+            //         curNodeList = jQuery.extend(true, [], nodeList);;
+            //         curEdgeList = jQuery.extend(true, [], yishengList);
+            //         curNodeList = setLevel(curNodeList, curEdgeList);
+            //         curRelation = "宜陞";
+            //         initial_graph();
+            //         $("#dropdownNetworkButton").removeAttr("disabled");
+            //         $("#editModeBtn").removeAttr("disabled");
+            //     });
+            // }
+            // //data
+            // function processData(allText) {
+            //     var allTextLines = allText.split(/\r\n|\n/);
+            //     var headers = allTextLines[0].split(',');
+            //     var lines = [];
 
-                for (var i=1; i<allTextLines.length; i++) {
-                    var data = allTextLines[i].split(',');
-                    if (data.length == headers.length) {
+            //     for (var i=1; i<allTextLines.length; i++) {
+            //         var data = allTextLines[i].split(',');
+            //         if (data.length == headers.length) {
 
-                        var tarr = {};
-                        for (var j=0; j<headers.length; j++) {
-                            tarr[headers[j]] = data[j];
-                        }
-                        lines.push(tarr);
-                    }
-                }
-                return lines;
-            }
-            function create_graph_element( relation_list ){
-                section_id_list = []
-                section_list = [];
-                section_edge_list = [];
-                for(var i = 0; i<relation_list.length; i++){
-                    relation = relation_list[i];
-                    prev_chapter = relation['prev_chapter'];
-                    prev_section = relation['prev_section'];
-                    prev_cg = relation['prev_cg'];
-                    prev_section_name = prev_chapter+'_'+prev_section;
-                    section = {
-                        id: prev_section_name,
-                        label: prev_cg+'\n'+prev_section_name,
-                        name: prev_cg+'\n'+prev_section_name,
-                        cg: prev_cg,
-                    }
-                    if (section_id_list.indexOf(prev_section_name) === -1){
-                        section_list.push(section);
-                        section_id_list.push(prev_section_name);
-                    }
-                    next_chapter = relation['next_chapter'];
-                    next_section = relation['next_section'];
-                    next_cg = relation['next_cg'];
-                    next_section_name = next_chapter+'_'+next_section;
-                    section = {
-                        id: next_section_name,
-                        label: prev_cg+'\n'+next_section_name,
-                        name: prev_cg+'\n'+next_section_name,
-                        cg: prev_cg,
-                    }
-                    if (section_id_list.indexOf(next_section_name) === -1){
-                        section_list.push(section);
-                        section_id_list.push(next_section_name);
-                    }
-                    section_edge_list.push({
-                        from: prev_section_name,
-                        to: next_section_name,
-                    })
-                }
-                return [section_list, section_edge_list]
-            }
+            //             var tarr = {};
+            //             for (var j=0; j<headers.length; j++) {
+            //                 tarr[headers[j]] = data[j];
+            //             }
+            //             lines.push(tarr);
+            //         }
+            //     }
+            //     return lines;
+            // }
+            // //data
+            // function create_graph_element( relation_list ){
+            //     section_id_list = []
+            //     section_list = [];
+            //     section_edge_list = [];
+            //     for(var i = 0; i<relation_list.length; i++){
+            //         relation = relation_list[i];
+            //         prev_chapter = relation['prev_chapter'];
+            //         prev_section = relation['prev_section'];
+            //         prev_cg = relation['prev_cg'];
+            //         prev_section_name = prev_chapter+'_'+prev_section;
+            //         section = {
+            //             id: prev_section_name,
+            //             label: prev_cg+'\n'+prev_section_name,
+            //             name: prev_cg+'\n'+prev_section_name,
+            //             cg: prev_cg,
+            //         }
+            //         if (section_id_list.indexOf(prev_section_name) === -1){
+            //             section_list.push(section);
+            //             section_id_list.push(prev_section_name);
+            //         }
+            //         next_chapter = relation['next_chapter'];
+            //         next_section = relation['next_section'];
+            //         next_cg = relation['next_cg'];
+            //         next_section_name = next_chapter+'_'+next_section;
+            //         section = {
+            //             id: next_section_name,
+            //             label: prev_cg+'\n'+next_section_name,
+            //             name: prev_cg+'\n'+next_section_name,
+            //             cg: prev_cg,
+            //         }
+            //         if (section_id_list.indexOf(next_section_name) === -1){
+            //             section_list.push(section);
+            //             section_id_list.push(next_section_name);
+            //         }
+            //         section_edge_list.push({
+            //             from: prev_section_name,
+            //             to: next_section_name,
+            //         })
+            //     }
+            //     return [section_list, section_edge_list]
+            // }
+            //data or view
             function initial_graph(){
                 // create a network
                 var container = document.getElementById('cg_network');
@@ -1170,6 +812,7 @@
                         updateStartPoint(Object.values(network.body.data.nodes._data), Object.values(network.body.data.edges._data)); 
                     });
             }
+            //view
             function changeNetworkYisheng(){
                 curRelation = "宜陞";
                 curEdgeList = CgLevel ? cgYishengList : yishengList;
@@ -1177,6 +820,7 @@
                 curEdgeList = changeEdgeColor({}, curEdgeList);
                 setAndRedrawNetwork();
             }
+            //view
             function changeNetworkInchai(){
                 curRelation = "因材";
                 curEdgeList = CgLevel ? cgInchaiList : inchaiList;
@@ -1184,6 +828,7 @@
                 curEdgeList = changeEdgeColor({}, curEdgeList);
                 setAndRedrawNetwork();
             }
+            //view
             function setAndRedrawNetwork(){
                 curNodeList = setLevel(curNodeList, curEdgeList);
                 //updateStartPoint(curNodeList, curEdgeList);
@@ -1193,6 +838,7 @@
                 });
                 network.redraw();
             }
+            //view
             function changeModeAndRedraw(){
                 curNodeList = CgLevel ? cgNodeList : nodeList;
                 switch (curRelation) {
@@ -1212,10 +858,12 @@
                     setAndRedrawNetwork();
                 }
             }
+            //view
             function changeLevel(){
                 CgLevel = document.getElementById("isCgLevel").checked;
                 changeModeAndRedraw();
             }
+            //view
             function changeDisplayResult(){
                 onlyRemedialResult = document.getElementById("onlyDisplayRemedial").checked;
                 setEmail(curEmail);
@@ -1270,6 +918,8 @@
                 });
             }
 
+
+            
             // edit mode
             function changeEditMode(){
                 editMode = !editMode;
@@ -1342,9 +992,9 @@
                 選擇資料來源（預設屏東）
             </button>
             <div id="dataDropdownContainer" class="dropdown-menu" aria-labelledby="dropdownDataButton">
-                <a class="dropdown-item" id="past_remedial" value="past_remedial" onclick="changeData(this.id)">歷屆補救教學</a>
-                <a class="dropdown-item" id="pintong" value="pintong" onclick="changeData(this.id)">屏東補救教學</a>
-                <a class="dropdown-item" id="custom" value="custom" onclick="changeData(this.id)">自行匯入</a>
+                <a class="dropdown-item" id="past_remedial" value="past_remedial" onclick="graphDataSource.changeData(this.id)">歷屆補救教學</a>
+                <a class="dropdown-item" id="pintong" value="pintong" onclick="graphDataSource.changeData(this.id)">屏東補救教學</a>
+                <a class="dropdown-item" id="custom" value="custom" onclick="graphDataSource.changeData(this.id)">自行匯入</a>
             </div>
         </div>
 
