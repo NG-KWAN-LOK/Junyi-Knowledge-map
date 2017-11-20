@@ -68,6 +68,9 @@ function GraphDataSource(){
     this.curEdgeList = undefined;
     this.curDate = 'all';
     this.curEmail = undefined;
+    // current display mode
+    this.cgLevel = false;
+    this.displayJunyiResult = true;
 
     // data
     this.liveExercise = undefined;
@@ -91,9 +94,16 @@ function GraphDataSource(){
         "6-n-09": ["menfs6bc"],
         "6-n-10": ["m3abs-ca"],
     };
+
+    // status
+    this.searchStatus = {
+        "learned": ["O", "easy", "fit"],
+        "not_learned": ["X", "not_fit"],
+        "not_sure": ["T", "under5"],
+    }
 }
 // Graph element
-GraphDataSource.prototype.initialGraphElement = function() {
+GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     var self = this;
     var f1 = $.ajax({
         type: "GET",
@@ -102,8 +112,8 @@ GraphDataSource.prototype.initialGraphElement = function() {
         success: function (data) {
             relationList = self.processData(data);
             graphElement = self.createGraphElement(relationList);
-            secNodeList = graphElement[0];
-            secYishengList = graphElement[1];
+            self.secNodeList = graphElement[0];
+            self.secYishengList = graphElement[1];
         }
     });
     var f2 = $.ajax({
@@ -113,7 +123,7 @@ GraphDataSource.prototype.initialGraphElement = function() {
         success: function (data) {
             relationList = self.processData(data);
             graphElement = self.createGraphElement(relationList);
-            secInchaiList = graphElement[1];
+            self.secInchaiList = graphElement[1];
         }
     });
     var f3 = $.ajax({
@@ -121,7 +131,7 @@ GraphDataSource.prototype.initialGraphElement = function() {
         url: "https://dl.dropbox.com/s/gce26byflmuq7ch/live_exercise.csv",
         dataType: "text",
         success: function (data) {
-            liveExercise = self.processData(data);
+            self.liveExercise = self.processData(data);
         }
     });
     var f4 = $.ajax({
@@ -142,14 +152,11 @@ GraphDataSource.prototype.initialGraphElement = function() {
     });
     w = $.when(f1, f2, f3, f4, f5);
     w.done(function () {
-        curNodeList = jQuery.extend(true, [], secNodeList);
-        ;
-        curEdgeList = jQuery.extend(true, [], secYishengList);
-        curNodeList = GraphUtil.setLevel(curNodeList, curEdgeList);
-        curRelation = "宜陞";
-        //initial_graph();
-        $("#dropdownNetworkButton").removeAttr("disabled");
-        $("#editModeBtn").removeAttr("disabled");
+        self.curNodeList = jQuery.extend(true, [], self.secNodeList);
+        self.curEdgeList = jQuery.extend(true, [], self.secYishengList);
+        self.curNodeList = GraphUtil.setLevel(self.curNodeList, self.curEdgeList);
+        self.curRelation = "yisheng";
+        callbackView(self.curNodeList, self.curEdgeList);
     });
 }
 GraphDataSource.prototype.processData = function(allText) {
@@ -211,6 +218,9 @@ GraphDataSource.prototype.createGraphElement = function(relation_list) {
 }
 GraphDataSource.prototype.resetData = function() {
     this.resultData = {};
+    this.curEmail = "";
+    this.curDate = 'all';
+    this.updateCurGrphElement();
 }
 GraphDataSource.prototype.collectData = function(data, type){
     for(var email in data){
@@ -249,7 +259,7 @@ GraphDataSource.prototype.loadRemedialJson = function(data) {
     }
     var results_obj = jQuery.parseJSON(data);
     this.collectData(results_obj, "remedial");
-    $(".submit_junyi").show();
+    //$(".submit_junyi").show();
     //updateStudentDropdown(); > update in view
 }
 GraphDataSource.prototype.loadJunyiJson = function(data) {
@@ -261,31 +271,8 @@ GraphDataSource.prototype.loadJunyiJson = function(data) {
     //updateStudentDropdown();
 }    
 
-GraphDataSource.prototype.changeData = function(resource) {
-    if (resource === "custom") {
-        $("#dropdownDataButton")[0].innerHTML = "自行匯入";
-        $("#submitCustomData").show();
-        junyi_obj = {};
-        results_obj = {};
-        $("#dropdownStudentButton").attr("disabled", true);
-        $("#dropdownDateButton").attr("disabled", true);
-    } else {
-        $("#dropdownDataButton")[0].innerHTML = resource === 'pintong' ? "屏東補救教學" : "歷屆補救教學";
-        $("#submitCustomData").hide();
-        var urlListDict = {
-            "pintong": ["https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
-                        "https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt"],
-            "past_remedial": ["https://dl.dropbox.com/s/zs8zn93oxqjkwqf/top_result.txt",
-                              "https://dl.dropbox.com/s/wpwpl7g1xyvpyrs/junyi_result.txt"],
-        };
-        this.updateData(urlListDict[resource]);
-    }
-}
-GraphDataSource.prototype.updateData = function(urlList) {
+GraphDataSource.prototype.updateData = function (urlList, finishUpdateCallback) {
     var self = this;
-    $("#dropdownStudentButton").attr("disabled", true);
-    $("#dropdownNetworkButton").attr("disabled", true);
-    $("#editModeBtn").attr("disabled", true);
     var remedial = $.ajax({
         type: "GET",
         url: urlList[0],
@@ -305,68 +292,235 @@ GraphDataSource.prototype.updateData = function(urlList) {
     w = $.when(remedial, junyi);
     w.done(function () {
         curEmail = "";
-        this.resetData();
-        //changeModeAndRedraw(); > redraw in view
-        $("#dropdownNetworkButton").removeAttr("disabled");
-        $("#editModeBtn").removeAttr("disabled");
+        finishUpdateCallback();
     });
 }
 
-GraphDataSource.prototype.getDisplayData = function(cgLevel, onlyRemedialResult){
+GraphDataSource.prototype.getDisplayNodeList = function(){
+    var self = this;
     if(!this.curEmail){
-        alert("沒有選擇學生，請選擇學生！");
-        return
+        return this.curNodeList
     }
-    var filterType = onlyRemedialResult ? "remedial" : "all";
-    var studentData = this.resultData[curEmail];
+    var studentData = this.resultData[this.curEmail];
     var filterData = [];
     // add condition to prevent unused loop
-    if (filterType === "all" && curDate === "all"){
+    if (this.displayJunyiResult && this.curDate === "all"){
         filterData = studentData;
     } else {
         filterData = studentData.filter(function (result) {
-            var typeMatched = (filterType === "all") ? true : (result["type"] === filterType);
-            var timeMatched = (curDate === "all") ? true : ((result["date"] === curDate) || result["type"] === "junyi"); // display specific date of remedial result and all junyi result
+            var typeMatched = self.displayJunyiResult ? true : (result["type"] === "remedial");
+            var timeMatched = (self.curDate === "all") ? true : ((result["date"] === self.curDate) || result["type"] === "junyi"); // display specific date of remedial result and all junyi result
             return typeMatched && timeMatched
         });
     }
-
-    var displayData = {};
+    var junyiData = {};
+    var remedialData = {};
     var descDict = {
         "fit": "學會",
         "under5": "做不到 5 題",
         "not_fit": "不適合",
         "easy": "已經會",
+        "O": "O 答對",
+        "T": "△ 半對",
+        "X": "X 答錯",
     }
     for(var i=0; i<filterData.length; i++){
         var result = filterData[i];
-        if(result["name"] in displayData){
-            continue
-        } else {
-        }
-
-        var desc = "";
+        // we handle remedial and junyi data in different way
         if(result["type"] === "remedial"){
-            desc = descDict[result["status"]] + ' ' + this.getExName();
+            var name = this.cgLevel ? result["name"] : this.cgToSection(result["name"]);
+            if (!(name in remedialData)){
+                // we handle the desciption later
+                remedialData[name] = {
+                    date: result["date"],
+                    status: result["status"],
+                    desc: "",
+                };
+            }
+            var needUpdate = remedialData[name]["date"] ? (remedialData[name]["date"] < result["date"]) : true;
+            if(needUpdate){
+                remedialData[name]["date"] = result["date"];
+                remedialData[name]["status"] = result["status"];
+            }
+            var curDesc = '補救教學結果：' + descDict[result["status"]];
+            if (result["date"]) {
+                curDesc = result["date"] + ' ' + curDesc;
+            }
+            remedialData[name]["desc"] += "\n" + curDesc;
         } else {
-            desc = '補救教學結果：' + descDict[result["status"]];
+            var name = this.cgLevel ? this.exToCg(result["name"]) : this.exToSection(result["name"]);
+            if(!(name in junyiData)){
+                junyiData[name] = {
+                    // we count the status in junyi case
+                    date: result["date"],
+                    desc: "",
+                    status: {
+                        under5: 0,
+                        not_fit: 0,
+                        fit: 0,
+                        easy: 0,
+                    }
+                };
+            } else {
+                // only remember the latest date
+                if(!junyiData[name]["date"] || result["date"] > junyiData[name]["date"]){
+                    junyiData[name]["date"] = result["date"];
+                }
+            }
+            junyiData[name]["status"][result["status"]] += 1;
+            var curDesc = descDict[result["status"]] + ' ' + this.getExName(result["name"]);
+            if (result["date"]) {
+                curDesc = result["date"] + ' ' + curDesc;
+            }
+            junyiData[name]["desc"] += "\n" + curDesc;
         }
-        if(result["date"]){
-            desc = result["date"] + ' ' + desc;
+    }
+    var displayData = this.combineAndSummary(remedialData, junyiData);
+
+    // 將整理好的資料放入 nodeList
+    var nodeListTmp = jQuery.extend(true, [], this.curNodeList);
+    for (var i = 0; i < nodeListTmp.length; i++) {
+        var nodeId = nodeListTmp[i]["id"];
+        if (nodeId in displayData) {
+            nodeListTmp[i]["group"] = displayData[nodeId]["status"];
+            nodeListTmp[i]["label"] = nodeListTmp[i]["name"] + displayData[nodeId]["desc"];
+            nodeListTmp[i]["date"] = displayData[nodeId]["date"];
         }
-        displayData[result["name"]] = {
-            date: displayData[result["name"]][date] ? (displayData[result["name"]][date] > result["date"] ? displayData[result["name"]][date] : result["date"]) : result["date"],
-            status: 1,
+        // maybe don't need it
+        // } else {
+        //     nodeListTmp[i]['group'] = undefined;
+        //     nodeListTmp[i]['label'] = nodeListTmp[i]['name'];
+        // }
+    }
+    // guess the unknown node
+    for (var i = 0; i < nodeListTmp.length; i++) {
+        var node = nodeListTmp[i];
+        var nodeId = node["id"];
+        if ( this.searchStatus["not_learned"].indexOf(node['group']) !== -1 ) {
+            nodeListTmp = this.guessNodeGroup(nodeId, nodeListTmp, this.curEdgeList, 'forward');
+        } else if (this.searchStatus["learned"].indexOf(node["group"]) !== -1 ) {
+            nodeListTmp = this.guessNodeGroup(nodeId, nodeListTmp, this.curEdgeList, 'backward');
         }
     }
 
+    // change status if we guess student learned the skill later
+    for (var i = 0; i < nodeListTmp.length; i++) {
+        var node = nodeListTmp[i];
+        var nodeId = node["id"];
+        //// think whether need to consider the remedial case
+        if (node['group'] === 'fit' || node['group'] === 'easy') {
+            var nodeDate = node["date"];
+            nodeListTmp = this.recursiveFillLearnedNode(nodeId, nodeDate, nodeListTmp, this.curEdgeList, 3)
+        }
+    }
+    // update the curNodeList
+    this.curNodeList = nodeListTmp;
+
+    return this.curNodeList
 }
+
+GraphDataSource.prototype.combineAndSummary = function(remedialData, junyiData){
+    function summaryStatus(statusDict){
+        var maxCount = 0;
+        var maxStatus = "";
+        for(var s in statusDict){
+            var curCount = statusDict[s];
+            if(curCount >= maxCount){
+                maxCount = curCount;
+                maxStatus = s;
+            }
+        }
+        return maxStatus
+    }
+    var displayData = remedialData;
+    for(var name in junyiData){
+        junyiData[name]["status"] = summaryStatus(junyiData[name]["status"]);
+        if( !(name in displayData) ){
+            displayData[name] = junyiData[name];
+        } else {
+            displayData[name] = {
+                date: remedialData[name]["date"] > junyiData[name]["date"] ? remedialData[name]["date"] : junyiData[name]["date"],
+                desc: remedialData[name]["desc"] + junyiData[name]["desc"],
+                satus: remedialData[name]["date"] > junyiData[name]["date"] ? remedialData[name]["status"] : junyiData[name]["status"],
+            }
+            // handle the conflict case
+            if ( (this.searchStatus["learned"].indexOf(remedialData[name]["status"]) === -1 && this.searchStatus["not_learned"].indexOf(remedialData[name]["status"]) === -1) ||
+                 (this.searchStatus["not_learned"].indexOf(remedialData[name]["status"]) === -1 && this.searchStatus["learned"].indexOf(remedialData[name]["status"]) === -1)){
+                // or add new attribute "conflict"
+                displayData[name]["status"] = "conflict";
+            }
+        }
+    }
+    return displayData;
+}
+// guess the unknown result node
+GraphDataSource.prototype.guessNodeGroup = function(nodeId, _nodeList, _edgeList, way) {
+
+    for (var i = 0; i < _edgeList.length; i++) {
+        var edge = _edgeList[i];
+        if ((way === 'forward' && edge['from'] === nodeId) ||
+            (way === 'backward' && edge['to'] === nodeId)) {
+            var guessNodeId = way === 'forward' ? edge['to'] : edge['from'];
+            for (var j = 0; j < _nodeList.length; j++) {
+                var _node = _nodeList[j];
+                if (_node['id'] === guessNodeId && !_node['group']) {
+                    _nodeList[j]['group'] = way === 'forward' ? 'guessX' : 'guessO';
+                    _nodeList = this.guessNodeGroup(guessNodeId, _nodeList, _edgeList, way);
+                    break // at most 1 node matched
+                } else if (_node['id'] === guessNodeId && _node['group']) {
+                    if ((way === 'backward' && _node['group'] === 'guessX') ||
+                        (way === 'forward' && _node['group'] === 'guessO')) {
+                        _nodeList[j]['group'] = 'guessT';
+                        _nodeList = this.guessNodeGroup(guessNodeId, _nodeList, _edgeList, way);
+                        break // at most 1 node matched
+                    }
+                }
+            }
+        }
+    }
+    return _nodeList
+}
+// When student learned some skill later, we guess the student is already learned some skill before that skill.
+GraphDataSource.prototype.recursiveFillLearnedNode = function(_nodeId, _date, _curNodeList, _curEdgeList, _rememberNumber) {
+    var prevNodeIds = _curEdgeList.reduce(function (result, edge) {
+        if (edge["to"] === _nodeId) {
+            result.push(edge["from"]);
+        }
+        return result
+    }, []);
+    _rememberNumber = _rememberNumber - prevNodeIds.length;
+        
+    for (var prevIdx = 0; prevIdx < prevNodeIds.length; prevIdx++) {
+        var prevNodeId = prevNodeIds[prevIdx];
+        var prevNode = GraphUtil.getNodeById(prevNodeId, _curNodeList);
+        var prevDate = prevNode['date'];
+        if (this.searchStatus["learned"].indexOf(prevNode['group']) === -1) {
+            if ( (_rememberNumber < 0) || (prevDate && prevDate > _date) ) {
+                // stop guess status
+                return _curNodeList
+            } else {
+                for (var nodeIdx = 0; nodeIdx < _curNodeList.length; nodeIdx++) {
+                    if (_curNodeList[nodeIdx]['id'] === prevNodeId) {
+                        _curNodeList[nodeIdx]['group'] = 'guessO';
+                        $("recommend-panel-container").append("<div>因為後面的單元學會了，因此判定 " + prevNodeId+" 已經學會</div>");
+                        break;
+                    }
+                }
+                _curNodeList = this.recursiveFillLearnedNode(prevNodeId, _date, _curNodeList, _curEdgeList, _rememberNumber)
+            }
+        }
+    }
+    return _curNodeList
+}
+
+
+
 
 // transfer cg, ex, section relation function
 GraphDataSource.prototype.cgToSection = function(cg) {
     var exerciseList = this.cgToExercise[cg] || [];
     var sectionList = []
-    for (var idx = 0; idx < this.exerciseList.length; idx++) {
+    for (var idx = 0; idx < exerciseList.length; idx++) {
         var sectionName = this.exToSection(exerciseList[idx]);
         if (sectionName && sectionList.indexOf(sectionName) === -1) {
             sectionList.push(sectionName);
@@ -409,7 +563,7 @@ GraphDataSource.prototype.exToCg = function(ex_id) {
     return cgName
 }
 GraphDataSource.prototype.getExName = function(exId) {
-    var matchedExercise = liveExercise.find(function (exercise) {
+    var matchedExercise = this.liveExercise.find(function (exercise) {
         return exercise["content_id"] === exId
     });
     var exerciseName = "";
@@ -418,181 +572,85 @@ GraphDataSource.prototype.getExName = function(exId) {
     }
     return exerciseName
 }
-
-
-
-
-
-//////////// need to modify
-//data
-GraphDataSource.prototype.getRemedialResultByTime = function(time) {
-    var remedial_result_tmp = results_obj[curEmail];
-    if (!remedial_result_tmp) { remedial_result_tmp = {}; }
-    var remedial_result = {};
-    // 整理obj
-    if (time == 'all') {
-        for (var cg in remedial_result_tmp) {
-            if (!CgLevel) {
-                sectionList = cgToSection(cg);
-            } else {
-                sectionList = [cg];
-            }
-            cg_obj = remedial_result_tmp[cg];
-            if (Array.isArray(cg_obj)) {
-                max_status = "";
-                max_date = "";
-                for (var i = 0; i < cg_obj.length; i++) {
-                    if (!max_status & !max_date) {
-                        max_status = cg_obj[i]['status'];
-                        max_date = cg_obj[i]['date'];
-                    } else {
-                        this_status = cg_obj[i]['status'];
-                        if (this_status < max_status) {
-                            // because O < T < X
-                            max_status = cg_obj[i]['status'];
-                            max_date = cg_obj[i]['date'];
-                        }
-                    }
-                }
-                for (var i = 0; i < sectionList.length; i++) {
-                    section = sectionList[i];
-                    remedial_result[section] = {
-                        'status': max_status,
-                        'date': max_date,
-                    }
-                }
-            } else {
-                if (!cg_obj['status']) {
-                    for (var i = 0; i < sectionList.length; i++) {
-                        section = sectionList[i];
-                        remedial_result[section] = {
-                            'status': cg_obj,
-                            'date': "NA",
-                        };
-                    }
-                } else {
-                    for (var i = 0; i < sectionList.length; i++) {
-                        section = sectionList[i];
-                        remedial_result[section] = cg_obj;
-                    }
-                }
-            }
-        }
-    } else {
-        for (var cg in remedial_result_tmp) {
-            if (!CgLevel) {
-                sectionList = cgToSection(cg);
-            } else {
-                sectionList = [cg];
-            }
-            cg_obj = remedial_result_tmp[cg];
-            if (Array.isArray(cg_obj)) {
-                for (var i = 0; i < cg_obj.length; i++) {
-                    if (cg_obj[i]['date'] === time) {
-                        for (var j = 0; j < sectionList.length; j++) {
-                            section = sectionList[j];
-                            remedial_result[section] = cg_obj[i];
-                        }
-                        break;
-                    }
-                }
-            } else {
-                if (cg_obj['date'] === time) {
-                    for (var j = 0; j < sectionList.length; j++) {
-                        section = sectionList[j];
-                        remedial_result[section] = cg_obj;
-                    }
-                }
-            }
-        }
-    }
-    $("#dropdownDateButton")[0].innerHTML = time === 'all' ? "所有時間" : time;
-    return remedial_result
-}
-//data
-GraphDataSource.prototype.getJunyiResult = function() {
-    if (!junyi_obj) {
-        return {};
-    }
-    student_in_jy = junyi_obj[curEmail];
-    if (!student_in_jy) { student_in_jy = {}; }
-    var junyi_result = {};
-    var section_result = {}
-    for (var ex_id in student_in_jy) {
-        ex_result = student_in_jy[ex_id];
-        ex_result["title"] = getExName(ex_id);
-        var sectionNameList = CgLevel ? exToCg(ex_id) : [exToSection(ex_id)];
-        for (var sec_idx = 0; sec_idx < sectionNameList.length; sec_idx++) {
-            var sectionName = sectionNameList[sec_idx];
-            if (!(sectionName in section_result)) {
-                section_result[sectionName] = [];
-            }
-            section_result[sectionName].push(ex_result);
-        }
-    }
-    for (var sectionName in section_result) {
-        junyi_result[sectionName] = summaryResult(section_result[sectionName])
-    }
-    return junyi_result
-}
-//data
-GraphDataSource.prototype.summaryResult = function(resultList) {
-    desc = [];
-    data = [];
-    status = "";
-    count = {
-        "under5": 0,
-        "easy": 0,
-        "fit": 0,
-        "not_fit": 0,
-    };
-    status_word = {
-        "under5": "還沒等級一",
-        "easy": "已經會了",
-        "fit": "學會",
-        "not_fit": "不適合",
-    };
-    for (var i = 0; i < resultList.length; i++) {
-        result = resultList[i];
-        count[result["status"]] += 1;
-        desc.push(result["date"] + '  ' + result["title"] + '  ' + status_word[result["status"]]);
-        data.push(result);
-    }
-    desc = desc.join('\n');
-    max_count = 0;
-    for (var s in count) {
-        if (count[s] >= max_count) {
-            max_count = count[s];
-            status = s;
-        }
-    }
-    return {
-        "status": status,
-        "date": desc,
-        "data": data,
-    }
-}
-//data
-GraphDataSource.prototype.mergeTwoResult = function(remedial_result, junyi_result) {
-    var result_obj = jQuery.extend(true, {}, remedial_result);
-    for (var sectionName in junyi_result) {
-        if (!(sectionName in remedial_result)) {
-            result_obj[sectionName] = junyi_result[sectionName];
+GraphDataSource.prototype.getExBySection = function(section){
+    var splitName = section.split('_');
+    var chapterName = splitName[0];
+    var sectionName = splitName[1];
+    var matchedExercise = this.liveExercise.filter(function(exercise){
+        var matched = exercise["chapter_title"] === chapterName && exercise["difficulty"] === "基礎";
+        if(sectionName){
+            return matched && exercise["section_title"] === sectionName
         } else {
-            // handle the conflict status
-            if ((remedial_result[sectionName]['status'] === 'O' && junyi_result[sectionName]['status'] === 'not_fit') ||
-                (remedial_result[sectionName]['status'] === 'X' &&
-                    (junyi_result[sectionName]['status'] === 'easy' || junyi_result[sectionName]['status'] === 'fit'))) {
-                result_obj[sectionName]['status'] = 'conflict';
-            }
-            // combine the date
-            if (remedial_result[sectionName]['date'] !== 'NA' || remedial_result[sectionName]['date'] !== 'nan') {
-                result_obj[sectionName]['date'] = remedial_result[sectionName]['date'] + ' 補救結果：' + remedial_result[sectionName]['status'] + '\n' + junyi_result[sectionName]['date'];
-            } else {
-                result_obj[sectionName]['date'] = '補救結果：' + remedial_result[sectionName]['status'] + '\n' + junyi_result[sectionName]['date'];
-            }
-            result_obj[sectionName]['data'] = junyi_result[sectionName]['data'].push(junyi_result[sectionName])
+            return matched
+        }
+    });
+    return matchedExercise
+}
+
+// set variable
+// maybe don't need it
+GraphDataSource.prototype.setCurGraphElement = function(nodeList, edgeList){
+    this.curNodeList = nodeList;
+    this.curEdgeList = edgeList;
+}
+GraphDataSource.prototype.getCurGraphElement = function(){
+    return [this.curNodeList, this.curEdgeList]
+}
+// think about the setLevel function 
+GraphDataSource.prototype.updateCurGrphElement = function(){
+    // update Edge
+    if (this.curRelation === "inchai") {
+        this.curEdgeList = this.cgLevel ? this.cgInchaiList : this.secInchaiList;
+    } else {
+        this.curEdgeList = this.cgLevel ? this.cgYishengList : this.secYishengList;
+    }
+    // update node data
+    this.curNodeList = this.cgLevel ? this.cgNodeList : this.secNodeList;
+    this.curNodeList = this.getDisplayNodeList();
+    
+    this.curNodeList = GraphUtil.setLevel(this.curNodeList, this.curEdgeList);
+}
+GraphDataSource.prototype.setRelation = function (relation) {
+    this.curRelation = relation;
+    this.updateCurGrphElement();
+}
+GraphDataSource.prototype.setDisplayLevel = function(cgLevel){
+    this.cgLevel = cgLevel;
+    this.updateCurGrphElement();
+}
+GraphDataSource.prototype.setDisplayJunyiResult = function(displayJunyiResult){
+    this.displayJunyiResult = displayJunyiResult;
+    this.updateCurGrphElement();
+}
+GraphDataSource.prototype.setEmail = function(email){
+    this.curEmail = email;
+    this.updateCurGrphElement();
+}
+GraphDataSource.prototype.setDisplayDate = function (date) {
+    this.curDate = date;
+    this.updateCurGrphElement();
+}
+GraphDataSource.prototype.getStudentList = function(){
+    if(!this.resultData){
+        return
+    }
+    var studentList = Object.keys(this.resultData);
+    return studentList
+}
+GraphDataSource.prototype.getDateList = function(){
+    if(!this.curEmail){
+        alert("請先選擇學生！")
+        return
+    }
+    var studentData = this.resultData[this.curEmail];
+    // to get unique date list
+    var dateDict = {};
+    for(var i=0; i< studentData.length; i++){
+        var resultObj = studentData[i];
+        if(resultObj['date'] && resultObj['type']==='remedial'){
+            dateDict[resultObj['date']] = true;
         }
     }
-    return result_obj
+    var dateList = Object.keys(dateDict);
+    return dateList
 }

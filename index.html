@@ -15,6 +15,7 @@
         <!-- graph class -->
         <script type="text/javascript" src="./GraphUtil.js"></script>
         <script type="text/javascript" src="./GraphDataSource.js"></script>
+        <script type="text/javascript" src="./GraphView.js"></script>
 
         <style type="text/css">
             #cg_network {
@@ -45,18 +46,15 @@
                 float: right;
                 margin-right: 5vw;
             }
+            .recommendTable {
+                border: 2px grey solid;
+                margin: 20px;
+            }
+            .recommendTableCell {
+                border: 1px grey solid;
+            }
         </style>
         <script>
-            // constant setting
-            var curEmail = undefined;
-            var curTime = undefined;
-            var results_obj = undefined;
-            var junyi_obj = undefined;
-            var fraction_cg = ["3-n-11","4-n-07","4-n-08","4-n-09","4-n-10",
-                               "5-n-06","5-n-07","5-n-08","5-n-09","5-n-13",
-                               "6-n-03","6-n-04","6-n-05","6-n-09","6-n-10"];
-            
-            
             
             // temp: for discuss
             // var statusStrArray = [
@@ -90,9 +88,6 @@
             //     '5-n-08': 0.57
             // }
 
-
-            
-
             function changeEdgeColor(student_result, edges_list){
                 var ret_edges_list = jQuery.extend(true, [], edges_list);
                 var red_edge = 0;
@@ -114,438 +109,6 @@
                 $("#red_edge")[0].innerHTML = "有 " + red_edge + " 條錯誤連線";
                 return ret_edges_list
             }
-            //view
-            function updateStudentDropdown(){
-                if (!results_obj){
-                    return
-                }
-                var student_list = [];
-                var studentDropdown = $("#studentDropdownContainer");
-                studentDropdown[0].innerHTML = "";
-                for(var email in results_obj){
-                    student_list.push(email);
-                    var s_item = $("<a></a>").text(email);
-                    s_item.attr("class", "dropdown-item");
-                    s_item.attr("id", email);
-                    s_item.attr("value", email);
-                    s_item.attr("onclick", "setEmail(this.id)");
-                    studentDropdown.append(s_item)
-                }
-                if(junyi_obj){
-                    for(var email in junyi_obj){
-                        if(student_list.indexOf(email) === -1){
-                            student_list.push(email);
-                            var s_item = $("<a></a>").text(email);
-                            s_item.attr("class", "dropdown-item");
-                            s_item.attr("id", email);
-                            s_item.attr("value", email);
-                            s_item.attr("onclick", "setEmail(this.id)");
-                            studentDropdown.append(s_item)
-                        }
-                    }
-                }
-                $("#dropdownStudentButton").removeAttr("disabled")
-                $("#dropdownStudentButton")[0].innerHTML = "選擇學生";
-            }
-            //view
-            function updateDateDropdown(){
-                if(!results_obj){
-                    alert("沒有載入測驗結果。");
-                    return;
-                }
-                var result_obj = results_obj[curEmail];
-                var date_list = [];
-                for(var cg in result_obj){
-                    cg_obj = result_obj[cg];
-                    if( Array.isArray(cg_obj) ){
-                        for(var i=0; i< cg_obj.length; i++){
-                            d = cg_obj[i]['date'];
-                            if( date_list.indexOf(d) === -1 ){
-                                date_list.push(d);
-                            }
-                        }
-                    } else {
-                        d = cg_obj['date'];
-                        if( date_list.indexOf(d) === -1 ){
-                            date_list.push(d);
-                        }
-                    }
-                }
-                var dateDropdown = $("#dateDropdownContainer");
-                dateDropdown[0].innerHTML = "<a class=\"dropdown-item\" id=\"all\" value=\"all\" onclick=\"changeNodeGroup(this.id)\">所有時間</a>";
-                for(var idx=0; idx<date_list.length; idx++){
-                    d = date_list[idx];
-                    var d_item = $("<a></a>").text(d);
-                    d_item.attr("class", "dropdown-item");
-                    d_item.attr("id", d);
-                    d_item.attr("value", d);
-                    d_item.attr("onclick", "changeNodeGroup(this.id)");
-                    dateDropdown.append(d_item)
-                }
-                $("#dropdownDateButton").removeAttr("disabled");
-            }
-            //view
-            function setEmail(email){
-                if(!email){ return }
-
-                curEmail = email;
-                curTime = curTime ? curTime : 'all';
-                updateDateDropdown();
-                changeNodeGroup(curTime);
-                $("#dropdownStudentButton")[0].innerHTML = email;
-            }
-            
-            //view
-            function changeNodeGroup(time){
-                if(!time){
-                    time = 'all';
-                }
-                if(!curEmail){
-                    alert("沒有選擇學生！")
-                    return;
-                }
-                curTime = time;
-                var remedial_result = getRemedialResultByTime(time);
-                var junyi_result = onlyRemedialResult ? {} : getJunyiResult();
-                var result_obj = mergeTwoResult(remedial_result, junyi_result);
-                var nodeListTmp = jQuery.extend(true, [], curNodeList);
-                for(var i = 0; i < nodeListTmp.length; i++){
-                    node_obj = nodeListTmp[i];
-                    node_id = node_obj['id'];
-                    if (node_id in result_obj){
-                        nodeListTmp[i]['data'] = result_obj[node_id]['data']
-                        if (result_obj[node_id]['status']){
-                            nodeListTmp[i]['group'] = result_obj[ node_id ]['status'];
-                            if (result_obj[node_id]['date'] !== 'NA' && result_obj[node_id]['date'] !== 'nan'){
-                                nodeListTmp[i]['label'] = nodeListTmp[i]['name']+'\n'+result_obj[node_id]['date'];
-                            } else {
-                                nodeListTmp[i]['label'] = nodeListTmp[i]['name'];
-                            }
-                        } else{
-                            nodeListTmp[i]['group'] = result_obj[ node_id ];
-                            nodeListTmp[i]['label'] = nodeListTmp[i]['name'];
-                        }
-                    } else{
-                        nodeListTmp[i]['group'] = undefined;
-                        nodeListTmp[i]['label'] = nodeListTmp[i]['name'];
-                    }
-                }
-
-                // guess the unknown result node
-                function guessNodeGroup(nodeId, _nodeList, _edgeList, way){
-                    
-                    for(var i=0; i<_edgeList.length; i++){
-                        var edge = _edgeList[i];
-                        if( (way === 'forward' && edge['from'] === nodeId) ||
-                            (way === 'backward' && edge['to'] === nodeId ) ){
-                            var guessNodeId = way === 'forward' ? edge['to'] : edge['from'];
-                            for(var j=0; j<_nodeList.length; j++){
-                                var _node = _nodeList[j];
-                                if(_node['id'] === guessNodeId && !_node['group']){
-                                    _nodeList[j]['group'] = way === 'forward' ? 'guessX' : 'guessO';
-                                    _nodeList = guessNodeGroup(guessNodeId, _nodeList, _edgeList, way);
-                                    break // at most 1 node matched
-                                } else if(_node['id'] === guessNodeId && _node['group']){
-                                    if(( way === 'backward' && _node['group'] === 'guessX') ||
-                                       ( way === 'forward' &&  _node['group'] === 'guessO')){
-                                        _nodeList[j]['group'] = 'guessT';
-                                        _nodeList = guessNodeGroup(guessNodeId, _nodeList, _edgeList, way);
-                                        break // at most 1 node matched
-                                    }   
-                                }
-                            }
-                        }
-                    }
-                    return _nodeList
-                }
-                for(var i=0; i<nodeListTmp.length; i++){
-                    
-                    var node = nodeListTmp[i];
-                    ///// temp
-                    // var cg = node['cg'];
-                    // if(correctRateDict[cg]){
-                    //     nodeListTmp[i]['label'] = correctRateDict[cg] + '\n' + nodeListTmp[i]['label'];
-                    // }
-                    /////
-                    if (node['group'] === 'X' || node['group'] === 'not_fit'){
-                        nodeListTmp = guessNodeGroup(node['id'], nodeListTmp, curEdgeList, 'forward');
-                    } else if(node['group'] === 'O' || node['group'] === 'easy' || node['group'] === 'fit'){
-                        nodeListTmp = guessNodeGroup(node['id'], nodeListTmp, curEdgeList, 'backward');
-                    }
-                }
-                guessTList = nodeListTmp.filter(function(_node){
-                    return _node['group'] === 'guessT'
-                });
-                $("#guessNode")[0].innerText = "有" + guessTList.length + "衝突的節點。"
-
-                // backward to fill learned node
-                // endNodeIdList = getEndNode(nodeListTmp, curEdgeList);
-                for (var i = 0; i < nodeListTmp.length; i++) {
-                    var curNode = nodeListTmp[i];
-                    if( curNode['group'] === 'fit' || curNode['group'] == 'easy' ){
-                        var curDate = undefined;
-                        if(curNode['data']){
-                            var curDateList = curNode['data'].map(function (result) {
-                                return result['date']
-                            })
-                            curDate = maxStringArray(curDateList);
-                        } else {
-                            curDate = curNode['date'];
-                        }
-                        nodeListTmp = recursiveFillLearnedNode(curNode['id'], curDate, nodeListTmp, curEdgeList, 3)
-                    }
-                }
-                // when get the learned node change the previous node to green
-                function recursiveFillLearnedNode(_nodeId, _date, _curNodeList, _curEdgeList, _rememberNumber){
-                    var prevNodeIds = _curEdgeList.reduce(function(result, edge){
-                        if(edge["to"] === _nodeId){
-                            result.push(edge["from"]);
-                        }
-                        return result
-                    },[]);
-                    _rememberNumber = _rememberNumber - prevNodeIds.length;
-                    for ( var prevIdx = 0; prevIdx < prevNodeIds.length; prevIdx++ ) {
-                        var prevNodeId = prevNodeIds[prevIdx];
-                        var prevNode = getNodeById(prevNodeId, _curNodeList);
-                        var prevDate = undefined;
-                        if (prevNode['data'] && prevNode['data'].length > 0){
-                            var prevDateList = prevNode['data'].map(function(result){
-                                return result['date'] && result['date'] !== 'nan' && result['date'] !== 'NA'
-                            });
-                            prevDate = maxStringArray(prevDateList);
-                        } else {
-                            if (prevNode['date'] !== 'nan' && prevNode['date'] !== 'NA'){
-                                prevDate = prevNode['date'];
-                            }
-                        }
-                        if ( ['fit','easy','O'].indexOf(prevNode['group']) === -1 ){
-                            if(prevDate && prevDate > _date){
-                                return _curNodeList
-                            } else {
-                                if(_rememberNumber >= 0){
-                                    for(var nodeIdx = 0; nodeIdx<_curNodeList.length; nodeIdx++){
-                                        if(_curNodeList[nodeIdx]['id'] === prevNodeId){
-                                            _curNodeList[nodeIdx]['group'] = 'guessO';
-                                            break;
-                                        }
-                                    }
-                                    _curNodeList = recursiveFillLearnedNode( prevNodeId, _date, _curNodeList, _curEdgeList, _rememberNumber )
-                                } 
-                            }   
-                        }
-                    }
-                    return _curNodeList
-                }
-
-                curNodeList = jQuery.extend(true, [], nodeListTmp);
-                curEdgeList = changeEdgeColor(result_obj, curEdgeList);
-                setAndRedrawNetwork();
-            }
-            
-            // //graph util
-            // function filterEdgeByNodeList(_curNodeList, _curEdgeList){
-            //     if (_curNodeList.length !== curNodeList.length) {
-            //         var _curNodeIdList = _curNodeList.map(function (node) {
-            //             return node['id']
-            //         });
-            //         var _curEdgeList = _curEdgeList.filter(function (edge) {
-            //             return _curNodeIdList.indexOf(edge['from']) !== -1 && _curNodeIdList.indexOf(edge['to']) !== -1
-            //         });
-            //     }
-            //     return _curEdgeList
-            // }
-            // //graph util
-            // function getStartNode(_curNodeList, _curEdgeList){
-            //     _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
-
-            //     var startNodeList = [];
-            //     for (var i = 0; i< _curEdgeList.length; i++){
-            //         var edgeObj = _curEdgeList[i];
-            //         var fromNode = edgeObj['from'];
-            //         var filterEdgeList = _curEdgeList.filter(function(edge){
-            //             return edge['to'] === fromNode
-            //         });
-            //         if(filterEdgeList.length === 0){
-            //             if(startNodeList.indexOf(fromNode) === -1){
-            //                 startNodeList.push(fromNode);
-            //             }
-            //         }
-            //     }
-            //     return startNodeList
-            // }
-            // //graph util
-            // function getEndNode(_curNodeList, _curEdgeList) {
-            //     var endNodeIdList = [];
-            //     for (var i = 0; i < _curEdgeList.length; i++) {
-            //         var edgeObj = _curEdgeList[i];
-            //         var toNode = edgeObj['to'];
-            //         var filterEdgeList = _curEdgeList.filter(function (edge) {
-            //             return edge['from'] === toNode
-            //         });
-            //         if (filterEdgeList.length === 0) {
-            //             if (endNodeIdList.indexOf(toNode) === -1) {
-            //                 endNodeIdList.push(toNode);
-            //             }
-            //         }
-            //     }
-            //     return endNodeIdList
-            // }
-            // //graph util
-            // function getSingleNode(_curNodeList, _curEdgeList) {
-            //     _curEdgeList = filterEdgeByNodeList(_curNodeList, _curEdgeList);
-            //     // handle the lonely island
-            //     var singleNodeIdList = [];
-            //     for (var i = 0; i < _curNodeList.length; i++) {
-            //         var nodeObj = _curNodeList[i];
-            //         var nodeId = nodeObj['id'];
-            //         var filterEdgeList = _curEdgeList.filter(function (edge) {
-            //             return edge['from'] === nodeId || edge['to'] === nodeId
-            //         });
-            //         if (filterEdgeList.length === 0) {
-            //             if (singleNodeIdList.indexOf(nodeId) === -1) {
-            //                 singleNodeIdList.push(nodeId);
-            //             }
-            //         }
-            //     }
-            //     return singleNodeIdList
-            // }
-            // // graph util
-            // function getNodeById(nodeId, _curNodeList) {
-            //     var matchNode = _curNodeList.filter(function (node) {
-            //         return node['id'] === nodeId
-            //     });
-            //     if (matchNode.length === 0) {
-            //         return {}
-            //     } else {
-            //         return matchNode[0]
-            //     }
-            // }
-            //view
-            function recursiveFindStartPoint(curStartNodeIdList, _curNodeList, _curEdgeList, statusList, checkCurNode){
-                
-                var matchedNodeList = [];
-                if(checkCurNode){
-                    var curNodeList = curStartNodeIdList.map(function(nodeId){
-                        return getNodeById(nodeId, _curNodeList)
-                    });
-                    for (var i=0; i<curNodeList.length; i++){
-                        var curNodeObj = curNodeList[i];
-                        if (statusList.indexOf(curNodeObj['group']) >= 0) {
-                            matchedNodeList.push(curNodeObj);
-                        }
-                    }
-                    if(matchedNodeList.length > 0){
-                        return matchedNodeList
-                    }
-                }
-
-                var nextNodeIdList = _curEdgeList.reduce(function(result,edge){
-                    if(curStartNodeIdList.indexOf(edge['from']) !== -1){
-                        result.push(edge['to']);
-                    }
-                    return result
-                },[]);
-                
-                // make list unique first to reduce the loop
-                var uniqueObj = {};
-                for(var i=0; i<nextNodeIdList.length; i++){
-                    uniqueObj[ nextNodeIdList[i] ] = true;
-                }
-                nextNodeIdList = Object.keys(uniqueObj);
-                var nextNodeList = nextNodeIdList.map(function(nodeId){
-                    return getNodeById(nodeId, _curNodeList)
-                })
-
-                for(var i=0; i<nextNodeList.length; i++){
-                    var nextNodeObj = nextNodeList[i];
-                    if ( statusList.indexOf( nextNodeObj['group'] ) >= 0 ){
-                        matchedNodeList.push(nextNodeObj);
-                    }
-                }
-                if(matchedNodeList.length > 0 || nextNodeIdList.length === 0){
-                    return matchedNodeList
-                } else {
-                    return recursiveFindStartPoint(nextNodeIdList, _curNodeList, _curEdgeList, statusList, false)
-                }
-            }
-            //view
-            function updateStartPoint(_curNodeList, _curEdgeList){
-                var searchListDict = {
-                    "learned": ['O', 'easy', 'fit'],
-                    "not_sure": ['T', 'under5'],
-                    "not_learned": ['X', 'not_fit'],
-                }
-
-                var correctList = _curNodeList.filter(function(node){
-                    return searchListDict['learned'].indexOf(node['group']) !== -1
-                });
-                var wrongList = _curNodeList.filter(function (node) {
-                    return searchListDict['not_learned'].indexOf(node['group']) !== -1
-                });
-                var notSureList = _curNodeList.filter(function (node) {
-                    return searchListDict['not_sure'].indexOf(node['group']) !== -1
-                });
-                if(correctList.length === 0 && wrongList.length === 0 && notSureList.length === 0){
-                    $("#startPointText")[0].innerText = "沒有資料。";
-                    return
-                }
-
-                // initialize the list
-                var startPointIdList = [];
-                var startPointList = [];
-                // If the information is not enough to decide the start point, we set the start point to the begin of the cg
-                if(correctList.length === 0 && wrongList.length === 0 && notSureList.length !== 0){
-                    var startNotSureNodeIdList = getStartNode(notSureList, _curEdgeList).concat(getSingleNode(notSureList, _curEdgeList));
-                    for(var s_id=0; s_id < startNotSureNodeIdList.length; s_id++){
-                        var startNodeId = startNotSureNodeIdList[s_id];
-                        var startNode = getNodeById(startNodeId, notSureList);
-                        var sameCgNodeList = _curNodeList.filter(function(node){
-                            return node['cg'] === startNode['cg'] && searchListDict['learned'].concat(['guessO']).indexOf(node['group']) === -1
-                        });
-                        startPointIdList = startPointIdList.concat(getStartNode(sameCgNodeList, _curEdgeList)
-                                                           .concat(getSingleNode(sameCgNodeList, _curEdgeList)));
-                        startPointList = startPointIdList.map(function(node_id){
-                            return getNodeById(node_id, sameCgNodeList)
-                        });
-                    }
-                } else if (wrongList.length !== 0) {
-                    // in this case, we should find the head of the chapter
-                    var startNodeIdList = getStartNode(_curNodeList, _curEdgeList);
-                    startNodeIdList = startNodeIdList.concat(getSingleNode(_curNodeList, _curEdgeList));
-                    startPointListTmp = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_learned'], true);
-                    for(var s_id=0; s_id<startPointListTmp.length; s_id++){
-                        var startPointTmp = startPointListTmp[s_id];
-                        var chapterName = startPointTmp['id'].split("_")[0];
-                        var sameChapterNodeList = _curNodeList.filter(function(node){
-                            return node['id'].split("_")[0] === chapterName  && searchListDict['learned'].concat(['guessO']).indexOf(node['group']) === -1
-                        });
-                        startPointIdList = startPointIdList.concat(getStartNode(sameChapterNodeList, _curEdgeList))
-                                                           .concat(getSingleNode(sameChapterNodeList, _curEdgeList));
-                        startPointList = startPointIdList.map(function (node_id) {
-                            console.log(node_id)
-                            console.log(sameCgNodeList)
-                            return getNodeById(node_id, sameChapterNodeList)
-                        });
-                    }
-                }
-                
-                
-                // var startNodeIdList = getStartNode(_curNodeList, _curEdgeList);
-                // startNodeIdList = startNodeIdList.concat(getSingleNode(_curNodeList, _curEdgeList));
-                // var startPointList = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_learned'], true);
-                // if (startPointList.length === 0){
-                //     startPointList = recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchListDict['not_sure'], true);
-                // }
-                if (startPointList.length === 0) {
-                    $("#startPointText")[0].innerText = "沒有推薦的起始點。";
-                } else {
-                    var startPointNameList = startPointList.map(function(node){
-                        return node['name'].replace('\n',' ')
-                    });
-                    $("#startPointText")[0].innerText = "推薦起始點為："+startPointNameList.join('、')+'。';
-                }
-            }
-
         </script>
         <script>
             var options = {
@@ -655,270 +218,15 @@
                     // solver: "hierarchicalRepulsion",
                 },
             };
-            var network = undefined;
-            var nodeList = undefined;
-            var yishengList = undefined;
-            var inchaiList = undefined;
-            var liveExercise = undefined;
-
-            var curRelation = undefined;
-            var curNodeList = undefined;
-            var curEdgeList = undefined;
-            var CgLevel = false;
-            var onlyRemedialResult = false;
-
             var editMode = false;
             var curEditGroup = "unknown";
             var graphDataSource = new GraphDataSource();
+            var graphView = new GraphView(options);            
             // load the relation we need to use
             $(document).ready(function() {
-                graphDataSource.initialGraphElement();
+                graphView.setDataSource(graphDataSource);
+                graphView.init();
             });
-            // //data
-            // function initialGraphElement(relation_path){
-            //     var f1 = $.ajax({
-            //         type: "GET",
-            //         url: "https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",//"https://dl.dropbox.com/s/kd8tyzom2hjr81r/yisheng_fraction_in_line.csv",
-            //         dataType: "text",
-            //         success: function(data) { 
-            //             relationList = processData(data);
-            //             graphElement = create_graph_element(relationList);
-            //             nodeList = graphElement[0];
-            //             yishengList = graphElement[1];
-            //         }
-            //     });
-            //     var f2 = $.ajax({
-            //         type: "GET",
-            //         url: "https://dl.dropbox.com/s/o9m8rjgo4uroara/inchai_fraction_in_line.csv",
-            //         dataType: "text",
-            //         success: function(data) { 
-            //             relationList = processData(data);
-            //             graphElement = create_graph_element(relationList);
-            //             inchaiList = graphElement[1];
-            //         }
-            //     });
-            //     var f3 = $.ajax({
-            //         type: "GET",
-            //         url: "https://dl.dropbox.com/s/gce26byflmuq7ch/live_exercise.csv",
-            //         dataType: "text",
-            //         success: function(data) { 
-            //             liveExercise = processData(data);
-            //         }
-            //     });
-            //     var f4 = $.ajax({
-            //         type: "GET",
-            //         url: "https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
-            //         dataType: "text",
-            //         success: function(data) { 
-            //             loadJson(data);
-            //         }
-            //     });
-            //     var f5 = $.ajax({
-            //         type: "GET",
-            //         url: "https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt",
-            //         dataType: "text",
-            //         success: function(data) { 
-            //             loadJunyiJson(data);
-            //         }
-            //     });
-            //     w = $.when(f1,f2,f3,f4,f5);
-            //     w.done(function(){
-            //         curNodeList = jQuery.extend(true, [], nodeList);;
-            //         curEdgeList = jQuery.extend(true, [], yishengList);
-            //         curNodeList = setLevel(curNodeList, curEdgeList);
-            //         curRelation = "宜陞";
-            //         initial_graph();
-            //         $("#dropdownNetworkButton").removeAttr("disabled");
-            //         $("#editModeBtn").removeAttr("disabled");
-            //     });
-            // }
-            // //data
-            // function processData(allText) {
-            //     var allTextLines = allText.split(/\r\n|\n/);
-            //     var headers = allTextLines[0].split(',');
-            //     var lines = [];
-
-            //     for (var i=1; i<allTextLines.length; i++) {
-            //         var data = allTextLines[i].split(',');
-            //         if (data.length == headers.length) {
-
-            //             var tarr = {};
-            //             for (var j=0; j<headers.length; j++) {
-            //                 tarr[headers[j]] = data[j];
-            //             }
-            //             lines.push(tarr);
-            //         }
-            //     }
-            //     return lines;
-            // }
-            // //data
-            // function create_graph_element( relation_list ){
-            //     section_id_list = []
-            //     section_list = [];
-            //     section_edge_list = [];
-            //     for(var i = 0; i<relation_list.length; i++){
-            //         relation = relation_list[i];
-            //         prev_chapter = relation['prev_chapter'];
-            //         prev_section = relation['prev_section'];
-            //         prev_cg = relation['prev_cg'];
-            //         prev_section_name = prev_chapter+'_'+prev_section;
-            //         section = {
-            //             id: prev_section_name,
-            //             label: prev_cg+'\n'+prev_section_name,
-            //             name: prev_cg+'\n'+prev_section_name,
-            //             cg: prev_cg,
-            //         }
-            //         if (section_id_list.indexOf(prev_section_name) === -1){
-            //             section_list.push(section);
-            //             section_id_list.push(prev_section_name);
-            //         }
-            //         next_chapter = relation['next_chapter'];
-            //         next_section = relation['next_section'];
-            //         next_cg = relation['next_cg'];
-            //         next_section_name = next_chapter+'_'+next_section;
-            //         section = {
-            //             id: next_section_name,
-            //             label: prev_cg+'\n'+next_section_name,
-            //             name: prev_cg+'\n'+next_section_name,
-            //             cg: prev_cg,
-            //         }
-            //         if (section_id_list.indexOf(next_section_name) === -1){
-            //             section_list.push(section);
-            //             section_id_list.push(next_section_name);
-            //         }
-            //         section_edge_list.push({
-            //             from: prev_section_name,
-            //             to: next_section_name,
-            //         })
-            //     }
-            //     return [section_list, section_edge_list]
-            // }
-            //data or view
-            function initial_graph(){
-                // create a network
-                var container = document.getElementById('cg_network');
-                
-                s_nodes = new vis.DataSet(curNodeList);
-                s_edges = new vis.DataSet(curEdgeList);
-                
-                var data = {
-                    nodes: s_nodes,
-                    edges: s_edges,
-                };
-            
-                // initialize network
-                network = new vis.Network(container, data, options);
-                network.on("initRedraw", function () { 
-                        updateStartPoint(Object.values(network.body.data.nodes._data), Object.values(network.body.data.edges._data)); 
-                    });
-            }
-            //view
-            function changeNetworkYisheng(){
-                curRelation = "宜陞";
-                curEdgeList = CgLevel ? cgYishengList : yishengList;
-                $("#dropdownNetworkButton")[0].innerHTML = "宜陞";
-                curEdgeList = changeEdgeColor({}, curEdgeList);
-                setAndRedrawNetwork();
-            }
-            //view
-            function changeNetworkInchai(){
-                curRelation = "因材";
-                curEdgeList = CgLevel ? cgInchaiList : inchaiList;
-                $("#dropdownNetworkButton")[0].innerHTML = "因材";
-                curEdgeList = changeEdgeColor({}, curEdgeList);
-                setAndRedrawNetwork();
-            }
-            //view
-            function setAndRedrawNetwork(){
-                curNodeList = setLevel(curNodeList, curEdgeList);
-                //updateStartPoint(curNodeList, curEdgeList);
-                network.setData({
-                    nodes: new vis.DataSet(curNodeList),
-                    edges: new vis.DataSet(curEdgeList),
-                });
-                network.redraw();
-            }
-            //view
-            function changeModeAndRedraw(){
-                curNodeList = CgLevel ? cgNodeList : nodeList;
-                switch (curRelation) {
-                    case "宜陞":
-                        curEdgeList = CgLevel ? cgYishengList : yishengList;
-                        break;
-                    case "因材":
-                        curEdgeList = CgLevel ? cgInchaiList : inchaiList;
-                        break;
-                    default:
-                        curEdgeList = CgLevel ? cgYishengList : yishengList;
-                        break;
-                }
-                if (curEmail && !editMode) {
-                    setEmail(curEmail)
-                } else {
-                    setAndRedrawNetwork();
-                }
-            }
-            //view
-            function changeLevel(){
-                CgLevel = document.getElementById("isCgLevel").checked;
-                changeModeAndRedraw();
-            }
-            //view
-            function changeDisplayResult(){
-                onlyRemedialResult = document.getElementById("onlyDisplayRemedial").checked;
-                setEmail(curEmail);
-            }
-            function changeData(resource){
-                if(resource === "custom"){
-                    $("#dropdownDataButton")[0].innerHTML = "自行匯入";
-                    $("#submitCustomData").show();
-                    junyi_obj = {};
-                    results_obj = {};
-                    $("#dropdownStudentButton").attr("disabled", true);
-                    $("#dropdownDateButton").attr("disabled", true);
-                } else {
-                    $("#dropdownDataButton")[0].innerHTML = resource === 'pintong' ? "屏東補救教學" : "歷屆補救教學";
-                    $("#submitCustomData").hide();
-                    var urlListDict = {
-                        "pintong": ["https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
-                                    "https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt"],
-                        "past_remedial": ["https://dl.dropbox.com/s/zs8zn93oxqjkwqf/top_result.txt",
-                                          "https://dl.dropbox.com/s/wpwpl7g1xyvpyrs/junyi_result.txt"],
-                    };
-                    updateData( urlListDict[resource] );
-                }
-            }
-            function updateData(urlList){
-                $("#dropdownStudentButton").attr("disabled", true);
-                $("#dropdownNetworkButton").attr("disabled", true);
-                $("#editModeBtn").attr("disabled", true);
-                var remedial = $.ajax({
-                    type: "GET",
-                    url: urlList[0],
-                    dataType: "text",
-                    success: function (data) {
-                        loadJson(data);
-                    }
-                });
-                var junyi = $.ajax({
-                    type: "GET",
-                    url: urlList[1],
-                    dataType: "text",
-                    success: function (data) {
-                        loadJunyiJson(data);
-                    }
-                });
-                w = $.when(remedial, junyi);
-                w.done(function () {
-                    curEmail = "";
-                    changeModeAndRedraw();
-                    //initial_graph();
-                    $("#dropdownNetworkButton").removeAttr("disabled");
-                    $("#editModeBtn").removeAttr("disabled");
-                });
-            }
-
-
             
             // edit mode
             function changeEditMode(){
@@ -979,12 +287,12 @@
                 選擇分年細目關係圖（預設宜陞）
             </button>
             <div id="networkDropdownContainer" class="dropdown-menu" aria-labelledby="dropdownNetworkButton">
-                <a class="dropdown-item" value="yisheng" onclick="changeNetworkYisheng()">宜陞</a>
-                <a class="dropdown-item" value="inchai" onclick="changeNetworkInchai()">因材</a>
+                <a class="dropdown-item" id="setRelationYisheng" value="yisheng">宜陞</a>
+                <a class="dropdown-item" id="setRelationInchai" value="inchai">因材</a>
             </div>
         </div>
-        <input type="checkbox" id="isCgLevel" value="只顯示分年細目" onchange="changeLevel()"/> <span for="isCgLevel">只顯示分年細目</span>
-        <input type="checkbox" id="onlyDisplayRemedial" value="只顯示補救成績" onchange="changeDisplayResult()" /> <span for="onlyDisplayRemedial">只顯示補救成績</span> <br/>
+        <input type="checkbox" id="isCgLevel" value="只顯示分年細目"/> <span for="isCgLevel">只顯示分年細目</span>
+        <input type="checkbox" id="displayJunyiResult" value="顯示均一歷程" checked /> <span for="displayJunyiResult">顯示均一歷程</span> <br/>
         
         <div class="dropdown">
             <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownDataButton" data-toggle="dropdown" aria-haspopup="true"
@@ -992,9 +300,9 @@
                 選擇資料來源（預設屏東）
             </button>
             <div id="dataDropdownContainer" class="dropdown-menu" aria-labelledby="dropdownDataButton">
-                <a class="dropdown-item" id="past_remedial" value="past_remedial" onclick="graphDataSource.changeData(this.id)">歷屆補救教學</a>
-                <a class="dropdown-item" id="pintong" value="pintong" onclick="graphDataSource.changeData(this.id)">屏東補救教學</a>
-                <a class="dropdown-item" id="custom" value="custom" onclick="graphDataSource.changeData(this.id)">自行匯入</a>
+                <a class="dropdown-item dataDropdown" id="past_remedial" value="past_remedial">歷屆補救教學</a>
+                <a class="dropdown-item dataDropdown" id="pintong" value="pintong">屏東補救教學</a>
+                <a class="dropdown-item dataDropdown" id="custom" value="custom">自行匯入</a>
             </div>
         </div>
 
@@ -1006,7 +314,7 @@
             <span>格式為 { 使用者email :{ 分年細目或知識點id: {"status": ... , "data": ... }, ... }, ... }</span>
         </span>
     </div>
-    <button id="editModeBtn" class="btn btn-info" onclick="changeEditMode()" disabled>進入編輯模式</button>
+    <!-- <button id="editModeBtn" class="btn btn-info" onclick="changeEditMode()" disabled>進入編輯模式</button> -->
     <div class="edit-mode" style="display: none;">
         <button id="exportBtn" class="btn btn-success" onclick="exportEditNetwork()">匯出編輯的圖</button>
         <input id="customNetwork" type="file" name="paste the network here" onchange="importEditNetwork(event)" />
@@ -1042,6 +350,9 @@
         <span id="startPointText"></span>
     </div>    
     <div id="cg_network"></div>
+    <div id="recommend-panel-container">
+
+    </div>
     </body>
     </html>
 

@@ -67,14 +67,12 @@ var GraphUtil = {
         return edges_list
     },
     filterEdgeByNodeList: function(_curNodeList, _curEdgeList){
-        if (_curNodeList.length !== curNodeList.length) {
-            var _curNodeIdList = _curNodeList.map(function (node) {
-                return node['id']
-            });
-            var _curEdgeList = _curEdgeList.filter(function (edge) {
-                return _curNodeIdList.indexOf(edge['from']) !== -1 && _curNodeIdList.indexOf(edge['to']) !== -1
-            });
-        }
+        var _curNodeIdList = _curNodeList.map(function (node) {
+            return node['id']
+        });
+        var _curEdgeList = _curEdgeList.filter(function (edge) {
+            return _curNodeIdList.indexOf(edge['from']) !== -1 && _curNodeIdList.indexOf(edge['to']) !== -1
+        });
         return _curEdgeList
     },
     getStartNode: function(_curNodeList, _curEdgeList) {
