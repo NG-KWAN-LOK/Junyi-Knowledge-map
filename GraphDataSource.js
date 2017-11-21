@@ -136,7 +136,7 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     });
     var f4 = $.ajax({
         type: "GET",
-        url: "https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
+        url: "https://dl.dropbox.com/s/218287ehwulzj1a/pintong_remedial_result_for_teacher.txt", //"https://dl.dropbox.com/s/j9tcnyrr8b2t16b/pintong_remedial_result.txt",
         dataType: "text",
         success: function (data) {
             self.loadRemedialJson(data);
@@ -144,13 +144,21 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     });
     var f5 = $.ajax({
         type: "GET",
-        url: "https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt",
+        url: "https://dl.dropbox.com/s/uj4r7vfqtr6u0t0/pintong_junyi_result_for_teacher.txt", //"https://dl.dropbox.com/s/snfffgshh19hen3/pintong_junyi_result.txt",
         dataType: "text",
         success: function (data) {
             self.loadJunyiJson(data);
         }
     });
-    w = $.when(f1, f2, f3, f4, f5);
+    var f6 = $.ajax({
+        type: "GET",
+        url: "https://dl.dropbox.com/s/c9lj3pf0obgix0o/the7to20_user_lv1_time.csv",
+        dataType: "text",
+        success: function (data) {
+            self.exerciseLearnedTime = self.processData(data);
+        }
+    });
+    w = $.when(f1, f2, f3, f4, f5, f6);
     w.done(function () {
         self.curNodeList = jQuery.extend(true, [], self.secNodeList);
         self.curEdgeList = jQuery.extend(true, [], self.secYishengList);
@@ -402,7 +410,7 @@ GraphDataSource.prototype.getDisplayNodeList = function(){
             nodeListTmp = this.guessNodeGroup(nodeId, nodeListTmp, this.curEdgeList, 'backward');
         }
     }
-
+    $("#guess-learned-text")[0].innerHTML = "";
     // change status if we guess student learned the skill later
     for (var i = 0; i < nodeListTmp.length; i++) {
         var node = nodeListTmp[i];
@@ -501,8 +509,12 @@ GraphDataSource.prototype.recursiveFillLearnedNode = function(_nodeId, _date, _c
             } else {
                 for (var nodeIdx = 0; nodeIdx < _curNodeList.length; nodeIdx++) {
                     if (_curNodeList[nodeIdx]['id'] === prevNodeId) {
+                        if (this.searchStatus["not_learned"].indexOf(_curNodeList[nodeIdx]['group']) !== -1 ||
+                            this.searchStatus["not_sure"].indexOf(_curNodeList[nodeIdx]['group']) !== -1){
+                            //$("#guess-learned-text").append("<div>因為後面的單元學會了，因此判定 " + prevNodeId + " 已經學會</div>");
+                        }
                         _curNodeList[nodeIdx]['group'] = 'guessO';
-                        $("recommend-panel-container").append("<div>因為後面的單元學會了，因此判定 " + prevNodeId+" 已經學會</div>");
+                        
                         break;
                     }
                 }
@@ -584,7 +596,41 @@ GraphDataSource.prototype.getExBySection = function(section){
             return matched
         }
     });
+    if(matchedExercise.length === 0){
+        matchedExercise = this.liveExercise.filter(function (exercise) {
+            var matched = exercise["chapter_title"] === chapterName && exercise["difficulty"] === "一般";
+            if (sectionName) {
+                return matched && exercise["section_title"] === sectionName
+            } else {
+                return matched
+            }
+        });
+    }
     return matchedExercise
+}
+GraphDataSource.prototype.getChapterId = function(section){
+    var splitName = section.split('_');
+    var chapterName = splitName[0];
+    var sectionName = splitName[1];
+    var matchedExercise = this.liveExercise.find(function (exercise) {
+        var matched = exercise["chapter_title"] === chapterName;
+        if (sectionName) {
+            return matched && exercise["section_title"] === sectionName
+        } else {
+            return matched
+        }
+    });
+    return matchedExercise['chapter_id']
+}
+GraphDataSource.prototype.getLearnedTime = function(exId){
+    var matchedExercise = this.exerciseLearnedTime.find(function (exercise) {
+        return exercise["exercise"] === exId
+    });
+    if(matchedExercise){
+        return Number(matchedExercise["get_lv1_time_90"])
+    } else {
+        return 0
+    }
 }
 
 // set variable
