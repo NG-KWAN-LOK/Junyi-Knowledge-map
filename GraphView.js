@@ -163,7 +163,7 @@ GraphView.prototype.updateDateDropdown = function(){
 //////// modify
 
 //view
-GraphView.prototype.recursiveFindStartPoint = function(curStartNodeIdList, _curNodeList, _curEdgeList, statusList, checkCurNode) {
+GraphView.prototype.recursiveFindStartPoint = function(curStartNodeIdList, _curNodeList, _curEdgeList, statusList, checkCurNode, includingLeaf) {
 
     var matchedNodeList = [];
     if (checkCurNode) {
@@ -201,14 +201,17 @@ GraphView.prototype.recursiveFindStartPoint = function(curStartNodeIdList, _curN
     })
     for (var i = 0; i < nextNodeList.length; i++) {
         var nextNodeObj = nextNodeList[i];
+        var isLeaf = GraphUtil.getNextNodeId(nextNodeObj['id'], _curEdgeList).length === 0
         if (statusList.indexOf(nextNodeObj['group']) >= 0) {
-            matchedNodeList.push(nextNodeObj);
+            if (includingLeaf || !isLeaf){
+                matchedNodeList.push(nextNodeObj);
+            }
         }
     }
     if (matchedNodeList.length > 0 || nextNodeIdList.length === 0) {
         return matchedNodeList
     } else {
-        return this.recursiveFindStartPoint(nextNodeIdList, _curNodeList, _curEdgeList, statusList, false)
+        return this.recursiveFindStartPoint(nextNodeIdList, _curNodeList, _curEdgeList, statusList, false, includingLeaf)
     }
 }
 //view
@@ -234,7 +237,6 @@ GraphView.prototype.getStartPoint = function(_curNodeList, _curEdgeList) {
     // initialize the list
     var startPointIdList = [];
     var startPointList = [];
-    $("#recommend-panel-container")[0].innerHTML = "";
     var startPointViewList = [];
     // If the information is not enough to decide the start point, we set the start point to the begin of the cg
     if (correctList.length === 0 && wrongList.length === 0 && notSureList.length !== 0) {
@@ -252,15 +254,10 @@ GraphView.prototype.getStartPoint = function(_curNodeList, _curEdgeList) {
                 return GraphUtil.getNodeById(node_id, sameCgNodeList)
             });
 
-            var startSectionList = startOfCgNodeIdList.map(function(node_id){
-                var splitName = node_id.split('_');
-                return splitName.length > 1 ? splitName[1] : splitName[0];
-            });
             startPointViewList.push({
                 type: "not_enough",
-                notLearnedPointName: undefined,
-                startPointName: startNode['cg'],
-                startSection: startSectionList,
+                notLearnedPointName: notSureList[0]['id'],
+                startSection: startOfCgNodeIdList,
             });
         }
         
@@ -269,7 +266,10 @@ GraphView.prototype.getStartPoint = function(_curNodeList, _curEdgeList) {
         // in this case, we should find the head of the chapter of the cg
         var startNodeIdList = GraphUtil.getStartNode(_curNodeList, _curEdgeList);
         startNodeIdList = startNodeIdList.concat(GraphUtil.getSingleNode(_curNodeList, _curEdgeList));
-        startPointListTmp = this.recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchStatusDict['not_learned'], true);
+        startPointListTmp = this.recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchStatusDict['not_learned'], true, false);
+        if(startPointListTmp.length === 0){
+            startPointListTmp = this.recursiveFindStartPoint(startNodeIdList, _curNodeList, _curEdgeList, searchStatusDict['not_learned'], true, true);
+        }
         for (var s_id = 0; s_id < startPointListTmp.length; s_id++) {
             var startPointTmp = startPointListTmp[s_id];
 
@@ -285,22 +285,19 @@ GraphView.prototype.getStartPoint = function(_curNodeList, _curEdgeList) {
                 var sameChapterNodeList = _curNodeList.filter(function (node) {
                     return node['id'].split("_")[0] === chapterName && searchStatusDict['learned'].concat(['guessO']).indexOf(node['group']) === -1
                 });
-                var startOfChapterNodeIdList = GraphUtil.getStartNode(sameChapterNodeList, _curEdgeList)
-                    .concat(GraphUtil.getSingleNode(sameChapterNodeList, _curEdgeList));    
+                var startOfChapterNodeIdList = GraphUtil.getStartNode(sameChapterNodeList, _curEdgeList);
+                if(startOfChapterNodeIdList.length === 0){
+                    startOfChapterNodeIdList = GraphUtil.getSingleNode(sameChapterNodeList, _curEdgeList);   ////////////// need it?  
+                }
                 startPointIdList = startPointIdList.concat(startOfChapterNodeIdList);
                 startPointList = startPointIdList.map(function (node_id) {
                     return GraphUtil.getNodeById(node_id, _curNodeList)//sameChapterNodeList)
                 });
 
-                var startSectionList = startOfChapterNodeIdList.map(function (node_id) {
-                    var splitName = node_id.split('_');
-                    return splitName.length > 1 ? splitName[1] : splitName[0];
-                });
                 startPointViewList.push({
                     type: "not_learned",
                     notLearnedPointName: startPointTmp['id'],
-                    startPointName: chapterName,
-                    startSection: startSectionList,
+                    startSection: startOfChapterNodeIdList,
                 });
             }
         }
@@ -315,28 +312,106 @@ GraphView.prototype.getStartPoint = function(_curNodeList, _curEdgeList) {
     }
     return startPointViewList
 }
+// use handlebar to improve
 GraphView.prototype.updateStarPointView = function(startPointViewList){
-    if(startPointViewList){
+    var self = this;
+    var createLinkElementText = function(relateLink, text){
+        return "<a target=\"_blank\" href=\"https://www.junyiacademy.org/" + relateLink + "\">" + text + "</a>"
+    }
+    var createSectionElement = function (nodeId, additionalClassName){
+
+        // maybe modify to nodeIdList
+        $("#recommend-container").append("<div class=\"recommendBlockContainer\" id=\"" + nodeId + "-container\"></div>");
+        var containerSelector = "#" + nodeId + "-container";
+        if(additionalClassName){
+            $(containerSelector).addClass(additionalClassName);
+        }
+        var linkElementText = createLinkElementText(this.graphDataSource.getChapterId(nodeId), nodeId);
+        if(additionalClassName === 'startPoint'){
+            linkElementText = "建議起始點：" + linkElementText;
+        }
+        $(containerSelector).append(
+            "<div class=\"recommendBlock\">" + linkElementText + "</div>"
+        );
+        var exerciseList = self.graphDataSource.getExBySection(nodeId);
+        var exerciseContent = "";
+        var learnedTime = 0;
+        for (var ex_idx = 0; ex_idx < exerciseList.length; ex_idx++) {
+            var exercise = exerciseList[ex_idx];
+            var chapterId = exercise["chapter_id"];
+            learnedTime += this.graphDataSource.getLearnedTime(exercise["content_id"]);
+            console.log(learnedTime);
+            exerciseContent += "<div>" + createLinkElementText("exercise/" + exercise["content_id"], exercise["content_title"]) + "</div>";
+        }
+        var learnedMin = Math.floor(learnedTime / 60);
+        var learnedSec = learnedTime - learnedMin * 60;
+        var learnedTimeText = learnedMin + " 分 " + learnedSec + " 秒";
+        $(containerSelector).append(
+            "<div class=\"recommendExercise\" id=\"" + nodeId + "-recommendExercise\">" +
+            "<div>平均達到等級一時間：" + learnedTimeText + "</div>" +
+            "<hr />" +
+            exerciseContent +
+            "</div>"
+        )
+        //var containerSelectorElement = getElementById()
+        $(containerSelector).hover(function () { this.lastElementChild.setAttribute("style", "display:block;"); },
+            function () { this.lastElementChild.setAttribute("style", "display:none;"); })
+    }
+    
+    $("#recommend-container")[0].innerHTML = "";
+    if (!startPointViewList){
+        if(!this.graphDataSource.curEmail){
+            $("#recommend-container").append("<div style=\"padding-left: 20px;\">請先選擇學生，即可看到推薦起始點嘍。</div>");
+        } else {
+            $("#recommend-container").append("<div style=\"padding-left: 20px;\">目前資料不足，無法建議起始點。</div>");
+        }
+        return
+    }
+
+    if (startPointViewList.length > 0){
         for(var i=0; i<startPointViewList.length; i++){
             startPointViewObj = startPointViewList[i];
-            if(startPointViewObj['type'] === "not_enough"){
-                $("#recommend-panel-container").append("<div>由於測驗以及歷程不足，建議從分年細目 " + startPointViewObj['startPointName'] + " 的觀念 " + startPointViewObj["startSection"].join('、') + " 開始</div>")
-            } else {
-                $("#recommend-panel-container").append("<div>學生於 " + startPointViewObj['notLearnedPointName'] + " 沒學會，建議從此次主題 " + startPointViewObj['startPointName'] + " 的觀念 " + startPointViewObj["startSection"].join('、') + " 開始</div>")
-                var recommendElement = ""
-                for (var j=0; j<startPointViewObj["startSection"].length; j++){
-                    var sectionName = startPointViewObj['startPointName'] + "_" + startPointViewObj["startSection"][j]
-                    var exerciseList = this.graphDataSource.getExBySection(sectionName);
-                    var exerciseContent = "";
-                    for(var ex_idx=0; ex_idx < exerciseList.length; ex_idx++){
-                        exercise = exerciseList[ex_idx];
-                        exerciseContent+="<div><a target=\"_blank\" href=\"https://www.junyiacademy.org/exercise/"+exercise["content_id"]+"\">"+exercise["content_title"]+"</a></div>";
+
+            $("#recommend-container").append("<div style=\"padding-left: 20px;\">學生於「" + startPointViewObj['notLearnedPointName'].split('_')[1] + "」沒學會可以參考以下學習路徑開始學習</div>")
+            $("#recommend-container").append(
+                "<h5>學習「" + startPointViewObj['notLearnedPointName'].split('_')[1] + "」建議路徑</h5>"
+            )
+            for (var j=0; j<startPointViewObj["startSection"].length; j++){
+                var sectionName = startPointViewObj["startSection"][j];
+                var path = GraphUtil.getPath(sectionName, startPointViewObj['notLearnedPointName'], this.graphDataSource.curEdgeList);
+                
+                var prevNodeIdList = GraphUtil.getPrevNodeId(path[0], this.graphDataSource.curEdgeList);
+                if(prevNodeIdList.length > 0){
+                    if (this.graphDataSource.getExBySection(prevNodeIdList[0]).length === 0){
+                        prevNodeIdList = GraphUtil.getPrevNodeId(prevNodeIdList[0], this.graphDataSource.curEdgeList);
                     }
-                    recommendElement += "<tr><td class=\"recommendTableCell\">" + sectionName +"</td><td class=\"recommendTableCell\">"+exerciseContent+"</td></tr>"
+                    if(prevNodeIdList.length > 0){
+                        createSectionElement(prevNodeIdList[0]);
+                        $("#recommend-container").append("<div class=\"recommendArrow\">↑</div>");
+                    }
                 }
-                $("#recommend-panel-container").append("<table class=\"recommendTable\"><tbody>"+recommendElement+"</tbody></table>");
+                for(var pathIdx=0; pathIdx < path.length; pathIdx++){
+                    
+                    var nodeId = path[pathIdx];
+                    if(pathIdx === path.length-1){
+                        createSectionElement(startPointViewObj['notLearnedPointName'], "endPoint");
+                    } else if(pathIdx === 0) {
+                        createSectionElement(nodeId, "startPoint");
+                        $("#recommend-container").append("<div class=\"recommendArrow\">↓</div>");
+                    } else {
+                        createSectionElement(nodeId);
+                        $("#recommend-container").append("<div class=\"recommendArrow\">↓</div>");
+                    }
+                }
+                var nextNodeIdList = GraphUtil.getNextNodeId(path[path.length-1], this.graphDataSource.curEdgeList);
+                if (nextNodeIdList.length > 0) {
+                    $("#recommend-container").append("<div class=\"recommendArrow\">↓</div>");
+                    createSectionElement(nextNodeIdList[0]);
+                }
             }
             
         }
+    } else {
+        $("#recommend-container").append("<div style=\"padding-left: 20px;\">現階段，此學生分數概念已經學到目前的學習階段嘍！</div>");
     }
 }

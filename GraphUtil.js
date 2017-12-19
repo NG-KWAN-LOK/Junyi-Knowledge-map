@@ -109,6 +109,32 @@ var GraphUtil = {
         }
         return endNodeIdList
     },
+    getNextNodeId: function(_nodeId, _curEdgeList){
+        var nextNodeIdList = [];
+        for (var i = 0; i < _curEdgeList.length; i++) {
+            var edgeObj = _curEdgeList[i];
+            if (edgeObj['from'] === _nodeId){
+                var toNodeId = edgeObj['to'];
+                if(nextNodeIdList.indexOf(toNodeId) === -1){
+                    nextNodeIdList.push(toNodeId);
+                }
+            }
+        }
+        return nextNodeIdList
+    },
+    getPrevNodeId: function (_nodeId, _curEdgeList) {
+        var fromNodeIdList = [];
+        for (var i = 0; i < _curEdgeList.length; i++) {
+            var edgeObj = _curEdgeList[i];
+            if (edgeObj['to'] === _nodeId) {
+                var fromNodeId = edgeObj['from'];
+                if (fromNodeIdList.indexOf(fromNodeId) === -1) {
+                    fromNodeIdList.push(fromNodeId);
+                }
+            }
+        }
+        return fromNodeIdList
+    },
     getSingleNode: function(_curNodeList, _curEdgeList) {
         _curEdgeList = this.filterEdgeByNodeList(_curNodeList, _curEdgeList);
         // handle the lonely island
@@ -135,6 +161,40 @@ var GraphUtil = {
             return {}
         } else {
             return matchNode[0]
+        }
+    },
+    getPath: function(startNodeId, endNodeId, _curEdgeList){
+        var self = this;
+        var recursiveGetPath = function(curNodeId, endNodeId, _curEdgeList, path){
+            var nextNodeIdList = self.getNextNodeId(curNodeId, _curEdgeList);
+            if(nextNodeIdList.length === 0){
+                return []
+            }
+            for(var i = 0; i< nextNodeIdList.length; i++){
+                var nextNodeId = nextNodeIdList[i];
+                if(nextNodeId === endNodeId){
+                    path.push(nextNodeId);
+                    return path
+                } else {
+                    next_path = recursiveGetPath(nextNodeId, endNodeId, _curEdgeList, path);
+                    path = path || next_path;
+                    if(path.length > 0){
+                        path = [nextNodeId].concat(path);
+                        return path
+                    }
+                }
+            }
+            return path
+        };
+        if(startNodeId === endNodeId){
+            return [startNodeId]
+        } else {
+            var path = recursiveGetPath(startNodeId, endNodeId, _curEdgeList, []);
+            if(path){
+                return [startNodeId].concat(path)
+            } else {
+                return false
+            }
         }
     },
 

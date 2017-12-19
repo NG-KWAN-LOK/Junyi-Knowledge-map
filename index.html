@@ -16,12 +16,17 @@
         <script type="text/javascript" src="./GraphUtil.js"></script>
         <script type="text/javascript" src="./GraphDataSource.js"></script>
         <script type="text/javascript" src="./GraphView.js"></script>
+        <!-- handlebars -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
 
         <style type="text/css">
             #cg_network {
                 width: 95vw;
                 height: 90vh;
                 border: 1px solid lightgray;
+                display: flex;
+               justify-content: center;
+               margin: auto;
             }
             .dropdown, input, #editModeBtn {
                 display: inline-block;
@@ -46,48 +51,43 @@
                 float: right;
                 margin-right: 5vw;
             }
-            .recommendTable {
-                border: 2px grey solid;
-                margin: 20px;
+            .recommendBlock,
+            .recommendArrow {
+                display: flex;
+                justify-content: center;
+                height: 30px;
             }
-            .recommendTableCell {
-                border: 1px grey solid;
+            .recommendBlockContainer{
+                position: relative;
+            }
+            .recommendExercise {
+                border: 1px #CCC solid;
+                border-radius: 5px;
+                box-shadow: 2px 2px 1px rgba(20%,20%,40%,0.5);
+                background-color: white;
+
+                padding: 10px;
+                position: absolute;
+                z-index: 50;
+                left: 50vw;
+                top: 20px;
+                display: none;
+            }
+            hr { 
+                width: 100%; 
+                background: #CCC;
+            }
+            h5 {
+                font-size: 18px;
+                display: flex;
+                justify-content: center;
+            }
+            .endPoint,
+            .endPoint a {
+                color: lightcoral;
             }
         </style>
         <script>
-            
-            // temp: for discuss
-            // var statusStrArray = [
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '0', '246/1335=0.18', '392/1335=0.29', '352/1335=0.26', '608/1335=0.46', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '227/1335=0.17', '0', '337/1335=0.25', '329/1335=0.25', '593/1335=0.44', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '193/1335=0.14', '157/1335=0.12', '0', '226/1335=0.17', '441/1335=0.33', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '212/1335=0.16', '208/1335=0.16', '285/1335=0.21', '0', '483/1335=0.36', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '64/1335=0.05', '68/1335=0.05', '96/1335=0.07', '79/1335=0.06', '0', '0', '0', '0', '0', '0'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '127/1423=0.09', '52/789=0.07', '46/903=0.05', '94/1423=0.07'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '341/1423=0.24', '0', '76/789=0.1', '100/903=0.11', '153/1423=0.11'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '279/789=0.35', '182/789=0.23', '0', '85/530=0.16', '127/789=0.16'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '228/903=0.25', '162/903=0.18', '50/530=0.09', '0', '112/903=0.12'],
-            //     ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '682/1423=0.48', '527/1423=0.37', '226/789=0.29', '293/903=0.32', '0']];
-            // var correctRateDict = {
-            //     '4-n-08': 0.48,
-            //     '6-n-05': 0.50,
-            //     '3-n-11': 0.55,
-            //     '5-n-06': 0.42,
-            //     '5-n-13': 0.83,
-            //     '6-n-04': 0.63,
-            //     '6-n-09': 0.58,
-            //     '5-n-09': 0.53,
-            //     '6-n-03': 0.78,
-            //     '6-n-10': 0.37,
-            //     '5-n-07': 0.44,
-            //     '5-n-08': 0.57
-            // }
-
             function changeEdgeColor(student_result, edges_list){
                 var ret_edges_list = jQuery.extend(true, [], edges_list);
                 var red_edge = 0;
@@ -281,7 +281,7 @@
         </script>
     </head>
     <body>
-    <div>
+    <div style="display:none;">
         <div class="dropdown">
             <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownNetworkButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
                 選擇分年細目關係圖（預設宜陞）
@@ -334,7 +334,7 @@
             <div id="studentDropdownContainer" class="dropdown-menu" aria-labelledby="dropdownStudentButton">
             </div>
         </span>
-        <span class="dropdown">
+        <span class="dropdown" style="display:none;">
             <button class="btn btn-success dropdown-toggle" type="button" id="dropdownDateButton" data-toggle="dropdown" aria-haspopup="true"
                 aria-expanded="false" disabled>
                 選擇時間
@@ -343,16 +343,24 @@
                 <a class="dropdown-item" id="all" value="all" onclick="changeNodeGroup(this.id)">所有時間</a>
             </div>
         </span>
-        <span id="red_edge" style="border:1px solid red; margin-left: 10px;"></span>
-        <span id="guessNode" style="margin-left: 10px; display: inline-block;"></span>
+        <span id="red_edge" style="border:1px solid red; margin-left: 10px; display:none;"></span>
+        <span id="guessNode" style="margin-left: 10px; display: none;"></span>
     </div>
-    <div class="start-point-container">
-        <span id="startPointText"></span>
-    </div>    
-    <div id="cg_network"></div>
+    
     <div id="recommend-panel-container">
-
+        <div id="guess-learned-text"></div>
+        <div id="recommend-container"></div>
     </div>
+
+    <div class="start-point-container" style="display:none;">
+        <span id="startPointText"></span>
+    </div>
+    <br/>
+    <br/>
+    <div style="padding-left: 20px;">*我們將學生的補救教學成績以及均一的學習歷程呈現在下圖，老師可以參考看看唷！</div>
+    <br/>
+    <div id="cg_network"></div>
+
     </body>
     </html>
 
