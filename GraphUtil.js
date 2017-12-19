@@ -176,8 +176,9 @@ var GraphUtil = {
                     path.push(nextNodeId);
                     return path
                 } else {
-                    path = path || recursiveGetPath(nextNodeId, endNodeId, _curEdgeList, path);
-                    if(path){
+                    next_path = recursiveGetPath(nextNodeId, endNodeId, _curEdgeList, path);
+                    path = path || next_path;
+                    if(path.length > 0){
                         path = [nextNodeId].concat(path);
                         return path
                     }
