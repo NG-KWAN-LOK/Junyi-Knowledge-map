@@ -111,20 +111,26 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
         dataType: "text",
         success: function (data) {
             relationList = self.processData(data);
-            graphElement = self.createGraphElement(relationList);
+            var graphElement = self.createGraphElement(relationList);
             self.secNodeList = graphElement[0];
             self.secYishengList = graphElement[1];
         }
     });
     var f2 = $.ajax({
         type: "GET",
-        url: "https://dl.dropbox.com/s/o9m8rjgo4uroara/inchai_fraction_in_line.csv",
+        url: "./cg_description.csv",//"https://dl.dropbox.com/s/o9m8rjgo4uroara/inchai_fraction_in_line.csv",
         dataType: "text",
         success: function (data) {
-            relationList = self.processData(data);
-            graphElement = self.createGraphElement(relationList);
-            self.secInchaiList = graphElement[1];
+            descriptionList = self.processData(data);
+            console.log(descriptionList)
         }
+    });
+    cg = $.when(f1,f2);
+    cg.done(function(){
+        var cgGraphElement = self.createCgGraphElement(relationList, descriptionList);
+        self.cgNodeList = cgGraphElement[0];
+        self.cgYishengList = cgGraphElement[1];
+        self.cgYishengList = GraphUtil.updateEdgesWeight(self.cgYishengList);
     });
     var f3 = $.ajax({
         type: "GET",
@@ -209,9 +215,9 @@ GraphDataSource.prototype.createGraphElement = function(relation_list) {
         next_section_name = next_chapter + '_' + next_section;
         section = {
             id: next_section_name,
-            label: prev_cg + '\n' + next_section_name,
-            name: prev_cg + '\n' + next_section_name,
-            cg: prev_cg,
+            label: next_cg + '\n' + next_section_name,
+            name: next_cg + '\n' + next_section_name,
+            cg: next_cg,
         };
         if (section_id_list.indexOf(next_section_name) === -1) {
             section_list.push(section);
@@ -223,6 +229,60 @@ GraphDataSource.prototype.createGraphElement = function(relation_list) {
         });
     }
     return [section_list, section_edge_list];
+}
+GraphDataSource.prototype.createCgGraphElement = function (relationList, descriptionList){
+    
+    var cgToDesc = function(cg, descriptionList){
+        var desc = ""
+        if(!descriptionList){
+            return ""
+        }
+        for(var i=0; i< descriptionList.length; i++){
+            if(descriptionList[i]["cg"] == cg){
+                desc = descriptionList[i]["short_desc"];
+            }
+        }
+        return desc
+    }
+
+    var cg_id_list = [];
+    var cg_node_list = [];
+    var cg_edge_list = [];
+    for (var i = 0; i < relationList.length; i++) {
+        var relation = relationList[i];
+
+        var prev_cg = relation['prev_cg'];
+        var prev_desc = cgToDesc(prev_cg, descriptionList);
+        if (cg_id_list.indexOf(prev_cg) === -1) {
+            var cg_node = {
+                id: prev_cg,
+                label: prev_cg + '\n' + prev_desc,
+                name: prev_cg + '\n' + prev_desc,
+                cg: prev_cg,
+            };
+            cg_node_list.push(cg_node);
+            cg_id_list.push(prev_cg);
+        }
+        var next_cg = relation['next_cg'];
+        var next_desc = cgToDesc(next_cg, descriptionList);
+        if (cg_id_list.indexOf(next_cg) === -1) {
+            var cg_node = {
+                id: next_cg,
+                label: next_cg + '\n' + next_desc,
+                name: next_cg + '\n' + next_desc,
+                cg: next_cg,
+            };
+            cg_node_list.push(cg_node);
+            cg_id_list.push(next_cg);
+        }
+        if(prev_cg !== next_cg){
+            cg_edge_list.push({
+                from: prev_cg,
+                to: next_cg,
+            });
+        }
+    }
+    return [cg_node_list, cg_edge_list];
 }
 GraphDataSource.prototype.resetData = function() {
     this.resultData = {};

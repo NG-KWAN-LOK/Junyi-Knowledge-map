@@ -13,6 +13,7 @@ GraphView.prototype.init = function(){
     document.getElementById("setRelationInchai").onclick = function(){ self.setRelation("inchai"); };
     document.getElementById("isCgLevel").onchange = function(){ self.handleDisplayLevelChange(); };
     document.getElementById("displayJunyiResult").onchange = function(){ self.handleDisplayJunyiResultChange(); };
+    document.getElementById("displayPath").onchange = function(){ self.handleDisplayPathChange(); };
     var dataDropdownElements = document.getElementsByClassName("dataDropdown")
     Array.prototype.forEach.call(dataDropdownElements, function(element) {
         element.onclick = function(){ self.handleChangeDataButton(this.id); };
@@ -58,11 +59,6 @@ GraphView.prototype.setRelation = function(relationType){
     this.graphDataSource.setRelation(relationType);
     $("#dropdownNetworkButton")[0].innerHTML = relationType === "yisheng" ? "宜陞" : "因材";
     this.redrawNetwork();
-
-    //////// need to modify
-    //curEdgeList = this.cgLevel ? cgYishengList : yishengList;
-    //curEdgeList = changeEdgeColor({}, curEdgeList);
-    //setAndRedrawNetwork();   
 }
 GraphView.prototype.handleDisplayLevelChange = function(){
     var cgLevel = document.getElementById("isCgLevel").checked;
@@ -73,6 +69,14 @@ GraphView.prototype.handleDisplayJunyiResultChange = function(){
     var displayJunyiResult = document.getElementById("displayJunyiResult").checked;
     this.graphDataSource.setDisplayJunyiResult(displayJunyiResult);
     this.redrawNetwork();
+}
+GraphView.prototype.handleDisplayPathChange = function(){
+    var displayPath = document.getElementById("displayPath").checked;
+    if(displayPath){
+        document.getElementById("recommend-panel-container").style.display = "block";
+    } else {
+        document.getElementById("recommend-panel-container").style.display = "none";
+    }
 }
 GraphView.prototype.handleChangeDataButton = function (resource) {
     var self = this;
