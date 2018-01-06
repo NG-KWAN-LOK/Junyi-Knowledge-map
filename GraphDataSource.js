@@ -107,7 +107,7 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     var self = this;
     var f1 = $.ajax({
         type: "GET",
-        url: "./shujun_in_line_20180102.csv", //"https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",
+        url: "https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv", //"./shujun_in_line_20180102.csv", //
         dataType: "text",
         success: function (data) {
             relationList = self.processData(data);
