@@ -20,13 +20,31 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
 
         <style type="text/css">
-            #cg_network {
-                width: 95vw;
+            #cg_network_container {
+                position: relative;
+                width: 100vw;
                 height: 90vh;
                 border: 1px solid lightgray;
                 display: flex;
-               justify-content: center;
-               margin: auto;
+                justify-content: center;
+                margin: auto;
+            }
+            #cg_network {
+                width: 80%;
+                position: absolute;
+                left: 0px;
+                bottom: 0px;
+                height: 90vh;
+            }
+            #show_pre_post_network {
+                /* z-index: 50; */
+                position: absolute;
+                right: 0px;
+                bottom: 0px;
+                background: rgba(200,200,200,0.5);
+                padding: 10px;
+                width: 20%;
+                height: 90vh;
             }
             .dropdown, input, #editModeBtn {
                 display: inline-block;
@@ -146,6 +164,7 @@
                     keyboard: true,
                     multiselect: true,
                     navigationButtons: true,
+                    hover: true,
                 },
                 manipulation:{
                     enabled: false,
@@ -184,7 +203,7 @@
                         edgeMinimization: true,
                         levelSeparation: 150,
                         nodeSpacing: 425,
-                        blockShifting: false,
+                        blockShifting: true,
                         parentCentralization: true,
                         sortMethod: 'directed',//'hubsize',
                     },
@@ -360,7 +379,10 @@
     <br/>
     <div style="padding-left: 20px;">*我們將學生的補救教學成績以及均一的學習歷程呈現在下圖，老師可以參考看看唷！</div>
     <br/>
-    <div id="cg_network"></div>
+    <div id="cg_network_container">
+        <div id="cg_network"></div>
+        <div id="show_pre_post_network"></div>
+    </div>
 
     </body>
     </html>

@@ -43,6 +43,59 @@ GraphView.prototype.init = function(){
             var startPointViewList = self.getStartPoint(Object.values(self.network.body.data.nodes._data), Object.values(self.network.body.data.edges._data));
             self.updateStarPointView(startPointViewList);
         });
+
+        // handle some event
+        self.network.on("selectNode", function(object){
+            // $("#show_pre_post_network")[0].innerHTML = object;
+            var subEdgeList = object["edges"].map(function (edgeId) {
+                return self.network.body.data.edges._data[edgeId]
+            });
+            var subNodeIdList = subEdgeList.reduce(function(nodeList, edge){
+                var nodeId = edge['from'];
+                if (nodeList.indexOf(nodeId) === -1){
+                    nodeList.push(nodeId);
+                }
+                nodeId = edge['to'];
+                if (nodeList.indexOf(nodeId) === -1) {
+                    nodeList.push(nodeId);
+                }
+                return nodeList
+            },[]);
+            var subData = {
+                nodes: new vis.DataSet(subNodeIdList.map(function (nodeId) {
+                    var nodeData = Object.assign({}, self.network.body.data.nodes._data[nodeId]);
+                    if (object["nodes"].indexOf(nodeId) !== -1){
+                        nodeData.color = {background: "orange"};
+                    }
+                    return nodeData
+                })),
+                edges: new vis.DataSet(subEdgeList)
+            }
+            var subOptions = {
+                edges: {
+                    arrows: 'to',
+                    arrowStrikethrough: false,
+                    smooth: false,
+                },
+                layout: {
+                    //randomSeed: 954201,
+                    hierarchical: {
+                        enabled: true,
+                        direction: "UD",
+                        edgeMinimization: true,
+                        levelSeparation: 150,
+                        nodeSpacing: 425,
+                        blockShifting: true,
+                        parentCentralization: true,
+                        sortMethod: 'directed',//'hubsize',
+                    },
+                },
+                physics: {
+                    enabled: false,
+                },
+            }
+            self.subNetwork = new vis.Network(document.getElementById('show_pre_post_network'), subData, subOptions);
+        });
     }
     graphDataSource.initialGraphElement(callbackView);
 }
@@ -371,17 +424,20 @@ GraphView.prototype.updateStarPointView = function(startPointViewList){
         }
         return
     }
-
+    console.log(startPointViewList)
     if (startPointViewList.length > 0){
         for(var i=0; i<startPointViewList.length; i++){
             startPointViewObj = startPointViewList[i];
 
             $("#recommend-container").append("<div style=\"padding-left: 20px;\">學生於「" + startPointViewObj['notLearnedPointName'].split('_')[1] + "」沒學會可以參考以下學習路徑開始學習</div>")
             $("#recommend-container").append(
-                "<h5>學習「" + startPointViewObj['notLearnedPointName'].split('_')[1] + "」建議路徑</h5>"
+                "<h4 style=\"padding-left: 20px;\">學習「" + startPointViewObj['notLearnedPointName'].split('_')[1] + "」建議路徑</h4>"
             )
             for (var j=0; j<startPointViewObj["startSection"].length; j++){
                 var sectionName = startPointViewObj["startSection"][j];
+                $("#recommend-container").append(
+                    "<h5>從「" + sectionName + "」開始學習</h5>"
+                )
                 var path = GraphUtil.getPath(sectionName, startPointViewObj['notLearnedPointName'], this.graphDataSource.curEdgeList);
                 
                 var prevNodeIdList = GraphUtil.getPrevNodeId(path[0], this.graphDataSource.curEdgeList);
@@ -394,11 +450,12 @@ GraphView.prototype.updateStarPointView = function(startPointViewList){
                         $("#recommend-container").append("<div class=\"recommendArrow\">↑</div>");
                     }
                 }
+                console.log(path)
                 for(var pathIdx=0; pathIdx < path.length; pathIdx++){
                     
                     var nodeId = path[pathIdx];
                     if(pathIdx === path.length-1){
-                        createSectionElement(startPointViewObj['notLearnedPointName'], "endPoint");
+                        createSectionElement(nodeId, "endPoint");
                     } else if(pathIdx === 0) {
                         createSectionElement(nodeId, "startPoint");
                         $("#recommend-container").append("<div class=\"recommendArrow\">↓</div>");

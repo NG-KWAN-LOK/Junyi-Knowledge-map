@@ -150,6 +150,15 @@ var GraphUtil = {
                     singleNodeIdList.push(nodeId);
                 }
             }
+            // temp start
+            else if (filterEdgeList.length === 1) {
+                if (filterEdgeList[0]['from'] === filterEdgeList[0]['to']){
+                    if (singleNodeIdList.indexOf(nodeId) === -1) {
+                        singleNodeIdList.push(nodeId);
+                    }
+                }
+            }
+            // temp end
         }
         return singleNodeIdList
     },

@@ -107,7 +107,7 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     var self = this;
     var f1 = $.ajax({
         type: "GET",
-        url: "https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",
+        url: "./shujun_in_line_20180102.csv", //"https://dl.dropbox.com/s/c5ib14yaw6hmh2k/shujun_fraction_in_line_v2.csv",
         dataType: "text",
         success: function (data) {
             relationList = self.processData(data);
@@ -122,7 +122,6 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
         dataType: "text",
         success: function (data) {
             descriptionList = self.processData(data);
-            console.log(descriptionList)
         }
     });
     cg = $.when(f1,f2);
@@ -168,17 +167,35 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     w.done(function () {
         self.curNodeList = jQuery.extend(true, [], self.secNodeList);
         self.curEdgeList = jQuery.extend(true, [], self.secYishengList);
-        self.curNodeList = GraphUtil.setLevel(self.curNodeList, self.curEdgeList);
+        //self.curNodeList = GraphUtil.setLevel(self.curNodeList, self.curEdgeList);
         self.curRelation = "yisheng";
         callbackView(self.curNodeList, self.curEdgeList);
     });
 }
 GraphDataSource.prototype.processData = function(allText) {
+
+    // regular expression function
+    function CSVtoArray(text) {
+        var re_valid = /^\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*(?:,\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*)*$/;
+        var re_value = /(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+        if (!re_valid.test(text)) return [];
+        var a = [];
+        text.replace(re_value,
+            function (m0, m1, m2, m3) {
+                if (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+                else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+                else if (m3 !== undefined) a.push(m3);
+                return '';
+            });
+        if (/,\s*$/.test(text)) a.push('');
+        return a;
+    };
+
     var allTextLines = allText.split(/\r\n|\n/);
     var headers = allTextLines[0].split(',');
     var lines = [];
     for (var i = 1; i < allTextLines.length; i++) {
-        var data = allTextLines[i].split(',');
+        var data = CSVtoArray(allTextLines[i]);
         if (data.length == headers.length) {
             var tarr = {};
             for (var j = 0; j < headers.length; j++) {
@@ -680,7 +697,11 @@ GraphDataSource.prototype.getChapterId = function(section){
             return matched
         }
     });
-    return matchedExercise['chapter_id']
+    if (matchedExercise){
+        return matchedExercise['chapter_id']
+    } else {
+        return ""
+    }
 }
 GraphDataSource.prototype.getLearnedTime = function(exId){
     var matchedExercise = this.exerciseLearnedTime.find(function (exercise) {
@@ -714,7 +735,7 @@ GraphDataSource.prototype.updateCurGrphElement = function(){
     this.curNodeList = this.cgLevel ? this.cgNodeList : this.secNodeList;
     this.curNodeList = this.getDisplayNodeList();
     
-    this.curNodeList = GraphUtil.setLevel(this.curNodeList, this.curEdgeList);
+    //this.curNodeList = GraphUtil.setLevel(this.curNodeList, this.curEdgeList);
 }
 GraphDataSource.prototype.setRelation = function (relation) {
     this.curRelation = relation;
