@@ -167,7 +167,7 @@ GraphDataSource.prototype.initialGraphElement = function(callbackView) {
     w.done(function () {
         self.curNodeList = jQuery.extend(true, [], self.secNodeList);
         self.curEdgeList = jQuery.extend(true, [], self.secYishengList);
-        //self.curNodeList = GraphUtil.setLevel(self.curNodeList, self.curEdgeList);
+        self.curNodeList = GraphUtil.setLevel(self.curNodeList, self.curEdgeList);
         self.curRelation = "yisheng";
         callbackView(self.curNodeList, self.curEdgeList);
     });
@@ -735,7 +735,7 @@ GraphDataSource.prototype.updateCurGrphElement = function(){
     this.curNodeList = this.cgLevel ? this.cgNodeList : this.secNodeList;
     this.curNodeList = this.getDisplayNodeList();
     
-    //this.curNodeList = GraphUtil.setLevel(this.curNodeList, this.curEdgeList);
+    this.curNodeList = GraphUtil.setLevel(this.curNodeList, this.curEdgeList);
 }
 GraphDataSource.prototype.setRelation = function (relation) {
     this.curRelation = relation;

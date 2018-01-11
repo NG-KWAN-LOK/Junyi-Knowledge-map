@@ -67,6 +67,7 @@ GraphView.prototype.init = function(){
                     if (object["nodes"].indexOf(nodeId) !== -1){
                         nodeData.color = {background: "orange"};
                     }
+                    nodeData.level = undefined;
                     return nodeData
                 })),
                 edges: new vis.DataSet(subEdgeList)
@@ -84,7 +85,7 @@ GraphView.prototype.init = function(){
                         direction: "UD",
                         edgeMinimization: true,
                         levelSeparation: 150,
-                        nodeSpacing: 425,
+                        nodeSpacing: 300,
                         blockShifting: true,
                         parentCentralization: true,
                         sortMethod: 'directed',//'hubsize',
@@ -393,16 +394,19 @@ GraphView.prototype.updateStarPointView = function(startPointViewList){
         var exerciseList = self.graphDataSource.getExBySection(nodeId);
         var exerciseContent = "";
         var learnedTime = 0;
+        var contentList = [];
         for (var ex_idx = 0; ex_idx < exerciseList.length; ex_idx++) {
             var exercise = exerciseList[ex_idx];
-            var chapterId = exercise["chapter_id"];
-            learnedTime += this.graphDataSource.getLearnedTime(exercise["content_id"]);
-            console.log(learnedTime);
-            exerciseContent += "<div>" + createLinkElementText("exercise/" + exercise["content_id"], exercise["content_title"]) + "</div>";
+            var contentId = exercise["content_id"];
+            if (contentList.indexOf(contentId) === -1){
+                learnedTime += this.graphDataSource.getLearnedTime(contentId);
+                exerciseContent += "<div>" + createLinkElementText("exercise/" + contentId, exercise["content_title"]) + "</div>";
+                contentList.push(contentId)
+            }
         }
-        var learnedMin = Math.floor(learnedTime / 60);
-        var learnedSec = learnedTime - learnedMin * 60;
-        var learnedTimeText = learnedMin + " 分 " + learnedSec + " 秒";
+        var learnedMin = Math.ceil(learnedTime / 60);
+        //var learnedSec = learnedTime - learnedMin * 60;
+        var learnedTimeText = learnedMin + " 分 ";// + learnedSec + " 秒";
         $(containerSelector).append(
             "<div class=\"recommendExercise\" id=\"" + nodeId + "-recommendExercise\">" +
             "<div>平均達到等級一時間：" + learnedTimeText + "</div>" +
