@@ -468,7 +468,8 @@ GraphDataSource.prototype.getDisplayNodeList = function(){
         var nodeId = nodeListTmp[i]["id"];
         if (nodeId in displayData) {
             nodeListTmp[i]["group"] = displayData[nodeId]["status"];
-            nodeListTmp[i]["label"] = nodeListTmp[i]["name"] + displayData[nodeId]["desc"];
+            nodeListTmp[i]["label"] = nodeListTmp[i]["name"];
+            nodeListTmp[i]['title'] = displayData[nodeId]["desc"];
             nodeListTmp[i]["date"] = displayData[nodeId]["date"];
         }
         // maybe don't need it
