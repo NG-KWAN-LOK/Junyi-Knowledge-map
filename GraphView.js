@@ -64,22 +64,22 @@ GraphView.prototype.init = function(){
             var subData = {
                 nodes: new vis.DataSet(subNodeIdList.map(function (nodeId) {
                     var nodeData = Object.assign({}, self.network.body.data.nodes._data[nodeId]);
-                    if (object["nodes"].indexOf(nodeId) !== -1){
-                        nodeData.color = {background: "orange"};
-                    }
                     nodeData.level = undefined;
                     return nodeData
                 })),
                 edges: new vis.DataSet(subEdgeList)
             }
             var subOptions = {
+                nodes: {
+                    color: { background: 'lightgray', hover: 'SILVER' },
+                    borderWidth: 0,
+                },
                 edges: {
                     arrows: 'to',
                     arrowStrikethrough: false,
                     smooth: false,
                 },
                 layout: {
-                    //randomSeed: 954201,
                     hierarchical: {
                         enabled: true,
                         direction: "UD",
@@ -88,14 +88,30 @@ GraphView.prototype.init = function(){
                         nodeSpacing: 300,
                         blockShifting: true,
                         parentCentralization: true,
-                        sortMethod: 'directed',//'hubsize',
+                        sortMethod: 'directed',
                     },
+                },
+                groups: {
+                    O: { color: { background: 'lightgreen', hover: 'LIMEGREEN' }, borderWidth: 3 },
+                    T: { color: { background: 'yellow', hover: 'GOLD' }, borderWidth: 3 },
+                    X: { color: { background: 'pink', hover: 'INDIANRED' }, borderWidth: 3 },
+                    guessO: { color: { background: 'lawngreen', hover: 'LIMEGREEN' }, borderWidth: 0 },
+                    guessT: { color: { background: 'yellow', hover: 'GOLD' }, borderWidth: 0 },
+                    guessX: { color: { background: 'lightcoral', hover: 'INDIANRED' }, borderWidth: 0 },
+                    JY: { color: { background: 'white' }, borderWidth: 3 },
+                    under5: { color: { background: 'yellow', hover: 'GOLD' }, borderWidth: 3 },
+                    fit: { color: { background: 'lightgreen', hover: 'LIMEGREEN' }, borderWidth: 3 },
+                    easy: { color: { background: 'lightgreen', hover: 'LIMEGREEN' }, borderWidth: 3 },
+                    not_fit: { color: { background: 'pink', hover: 'INDIANRED' }, borderWidth: 3 },
+                    unknown: { color: { background: 'lightgray', hover: 'SILVER' }, borderWidth: 0 },
+                    conflict: { color: { background: 'orange' }, borderWidth: 3 },
                 },
                 physics: {
                     enabled: false,
                 },
             }
             self.subNetwork = new vis.Network(document.getElementById('show_pre_post_network'), subData, subOptions);
+            self.subNetwork.selectNodes(self.network.getSelection()['nodes']);
         });
     }
     graphDataSource.initialGraphElement(callbackView);
@@ -387,7 +403,13 @@ GraphView.prototype.updateStarPointView = function(startPointViewList){
         var linkElementText = createLinkElementText(this.graphDataSource.getChapterId(nodeId), nodeId);
         if(additionalClassName === 'startPoint'){
             linkElementText = "建議起始點：" + linkElementText;
-        }
+        } else if (additionalClassName === 'endPoint') {
+            linkElementText = "學生尚未學會：" + linkElementText;
+        } else if (additionalClassName === 'prevPoint') {
+            linkElementText = "起始點的先備：" + linkElementText;
+        } else if (additionalClassName === 'nextPoint') {
+            linkElementText = "可以繼續學：" + linkElementText;
+        } 
         $(containerSelector).append(
             "<div class=\"recommendBlock\">" + linkElementText + "</div>"
         );
@@ -450,11 +472,10 @@ GraphView.prototype.updateStarPointView = function(startPointViewList){
                         prevNodeIdList = GraphUtil.getPrevNodeId(prevNodeIdList[0], this.graphDataSource.curEdgeList);
                     }
                     if(prevNodeIdList.length > 0){
-                        createSectionElement(prevNodeIdList[0]);
+                        createSectionElement(prevNodeIdList[0], "prevPoint");
                         $("#recommend-container").append("<div class=\"recommendArrow\">↑</div>");
                     }
                 }
-                console.log(path)
                 for(var pathIdx=0; pathIdx < path.length; pathIdx++){
                     
                     var nodeId = path[pathIdx];
@@ -471,7 +492,7 @@ GraphView.prototype.updateStarPointView = function(startPointViewList){
                 var nextNodeIdList = GraphUtil.getNextNodeId(path[path.length-1], this.graphDataSource.curEdgeList);
                 if (nextNodeIdList.length > 0) {
                     $("#recommend-container").append("<div class=\"recommendArrow\">↓</div>");
-                    createSectionElement(nextNodeIdList[0]);
+                    createSectionElement(nextNodeIdList[0], "nextPoint");
                 }
             }
             

@@ -61,7 +61,18 @@
                 height: 15px;
                 display: inline-block;
                 margin-right: 5px;
+                margin-left: 5px;
                 border: 1px black solid;
+                vertical-align: middle;
+            }
+            .node-display {
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                display: inline-block;
+                border-radius: 20px;
+                background: lightgray;
+                text-align: center;
                 vertical-align: middle;
             }
             .start-point-container {
@@ -144,7 +155,7 @@
                     dragNodes: true,
                 },
                 nodes:{
-                    color:{background:'lightgrey'},
+                    color:{background:'lightgray', hover: 'SILVER'},
                     borderWidth: 0,
                 },
                 edges:{
@@ -219,19 +230,19 @@
                     },
                 },
                 groups:{
-                    O: {color:{background:'lawngreen'}, borderWidth: 3},
-                    T: {color:{background:'yellow'}, borderWidth: 3},
-                    X: {color:{background:'lightcoral'}, borderWidth: 3},
-                    guessO: { color: { background: 'lawngreen' }, borderWidth: 0 },
-                    guessT: { color: { background: 'yellow' }, borderWidth: 0 },
-                    guessX: { color: { background: 'lightcoral' }, borderWidth: 0 },
+                    O: {color:{background:'lightgreen', hover: 'LIMEGREEN'}, borderWidth: 3},
+                    T: {color:{background:'yellow', hover: 'GOLD'}, borderWidth: 3},
+                    X: {color:{background:'pink', hover: 'INDIANRED'}, borderWidth: 3},
+                    guessO: { color: { background: 'lawngreen', hover: 'LIMEGREEN' }, borderWidth: 0 },
+                    guessT: { color: { background: 'yellow', hover: 'GOLD'}, borderWidth: 0 },
+                    guessX: { color: { background: 'lightcoral', hover: 'INDIANRED'}, borderWidth: 0 },
                     JY: {color:{background:'white'}, borderWidth: 3},
-                    under5: {color:{background:'LightGoldenRodYellow'}, borderWidth: 3},
-                    fit: {color:{background:'lightgreen'}, borderWidth: 3},
-                    easy: {color:{background:'lightgreen'}, borderWidth: 3},
-                    not_fit: {color:{background:'pink'}, borderWidth: 3},
-                    unknown: {color:{background:'lightgrey'}, borderWidth: 0},
-                    conflict: { color: { background: 'LightSkyBlue' }, borderWidth: 3 },
+                    under5: {color:{background:'yellow', hover: 'GOLD'}, borderWidth: 3},
+                    fit: {color:{background:'lightgreen', hover: 'LIMEGREEN'}, borderWidth: 3},
+                    easy: {color:{background:'lightgreen', hover: 'LIMEGREEN'}, borderWidth: 3},
+                    not_fit: {color:{background:'pink', hover: 'INDIANRED'}, borderWidth: 3},
+                    unknown: {color:{background:'lightgray', hover: 'SILVER'}, borderWidth: 0},
+                    conflict: { color: { background: 'orange' }, borderWidth: 3 },
                 },
                 physics:{
                     enabled: false,
@@ -388,7 +399,16 @@
     </div>
     <br/>
     <br/>
-    <div style="padding-left: 20px;">*我們將學生的補救教學成績以及均一的學習歷程呈現在下圖，老師可以參考看看唷！</div>
+    <div style="position:relative;">
+        <span style="padding-left: 20px;">*我們將學生的補救教學成績以及均一的學習歷程呈現在下圖，老師可以參考看看唷！</span>
+        <span style="right: 2.5vw; position: absolute;">
+            <label><div class="node-display">先備</div>→<div class="node-display">後續</div></label> 
+            <label><div class="radio-color-display" style="background-color: lightcoral;"></div>不會</label>
+            <label><div class="radio-color-display" style="background-color: yellow;"></div>不確定</label>
+            <label><div class="radio-color-display" style="background-color: lawnGreen;"></div>學會</label>
+            <label><div class="radio-color-display" style="background-color: orange;"></div>歷程與補救資料結果不同</label>
+        </span>
+    </div>
     <br/>
     <div id="cg_network_container">
         <div id="cg_network"></div>
