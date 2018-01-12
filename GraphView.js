@@ -111,7 +111,6 @@ GraphView.prototype.init = function(){
                 },
             }
             self.subNetwork = new vis.Network(document.getElementById('show_pre_post_network'), subData, subOptions);
-            self.subNetwork.selectNodes(self.network.getSelection()['nodes']);
         });
     }
     graphDataSource.initialGraphElement(callbackView);
