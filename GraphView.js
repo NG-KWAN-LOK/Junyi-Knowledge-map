@@ -71,7 +71,7 @@ GraphView.prototype.init = function(){
             }
             var subOptions = {
                 nodes: {
-                    color: { background: 'lightgray', hover: 'SILVER' },
+                    color: { background: 'lightgray', hover: 'SILVER', highlight: 'SILVER' },
                     borderWidth: 0,
                 },
                 edges: {
@@ -92,18 +92,18 @@ GraphView.prototype.init = function(){
                     },
                 },
                 groups: {
-                    O: { color: { background: 'lightgreen', hover: 'LIMEGREEN' }, borderWidth: 3 },
-                    T: { color: { background: 'yellow', hover: 'GOLD' }, borderWidth: 3 },
-                    X: { color: { background: 'pink', hover: 'INDIANRED' }, borderWidth: 3 },
-                    guessO: { color: { background: 'lawngreen', hover: 'LIMEGREEN' }, borderWidth: 0 },
-                    guessT: { color: { background: 'yellow', hover: 'GOLD' }, borderWidth: 0 },
-                    guessX: { color: { background: 'lightcoral', hover: 'INDIANRED' }, borderWidth: 0 },
+                    O: { color: { background: 'lightgreen', hover: 'LIMEGREEN', highlight: 'LIMEGREEN' }, borderWidth: 3 },
+                    T: { color: { background: 'yellow', hover: 'GOLD', highlight: 'GOLD' }, borderWidth: 3 },
+                    X: { color: { background: 'pink', hover: 'INDIANRED', highlight: 'INDIANRED' }, borderWidth: 3 },
+                    guessO: { color: { background: 'lawngreen', hover: 'LIMEGREEN', highlight: 'LIMEGREEN' }, borderWidth: 0 },
+                    guessT: { color: { background: 'yellow', hover: 'GOLD', highlight: 'GOLD' }, borderWidth: 0 },
+                    guessX: { color: { background: 'lightcoral', hover: 'INDIANRED', highlight: 'INDIANRED' }, borderWidth: 0 },
                     JY: { color: { background: 'white' }, borderWidth: 3 },
-                    under5: { color: { background: 'yellow', hover: 'GOLD' }, borderWidth: 3 },
-                    fit: { color: { background: 'lightgreen', hover: 'LIMEGREEN' }, borderWidth: 3 },
-                    easy: { color: { background: 'lightgreen', hover: 'LIMEGREEN' }, borderWidth: 3 },
-                    not_fit: { color: { background: 'pink', hover: 'INDIANRED' }, borderWidth: 3 },
-                    unknown: { color: { background: 'lightgray', hover: 'SILVER' }, borderWidth: 0 },
+                    under5: { color: { background: 'yellow', hover: 'GOLD', highlight: 'GOLD' }, borderWidth: 3 },
+                    fit: { color: { background: 'lightgreen', hover: 'LIMEGREEN', highlight: 'LIMEGREEN' }, borderWidth: 3 },
+                    easy: { color: { background: 'lightgreen', hover: 'LIMEGREEN', highlight: 'LIMEGREEN' }, borderWidth: 3 },
+                    not_fit: { color: { background: 'pink', hover: 'INDIANRED', highlight: 'INDIANRED' }, borderWidth: 3 },
+                    unknown: { color: { background: 'lightgray', hover: 'SILVER', highlight: 'SILVER' }, borderWidth: 0 },
                     conflict: { color: { background: 'orange' }, borderWidth: 3 },
                 },
                 physics: {
