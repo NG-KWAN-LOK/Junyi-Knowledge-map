@@ -431,7 +431,7 @@ GraphDataSource.prototype.getDisplayNodeList = function(){
             if (result["date"]) {
                 curDesc = result["date"] + ' ' + curDesc;
             }
-            remedialData[name]["desc"] += "\n" + curDesc;
+            remedialData[name]["desc"] += "<br/>" + curDesc;
         } else {
             var name = this.cgLevel ? this.exToCg(result["name"]) : this.exToSection(result["name"]);
             if(!(name in junyiData)){
@@ -457,7 +457,7 @@ GraphDataSource.prototype.getDisplayNodeList = function(){
             if (result["date"]) {
                 curDesc = result["date"] + ' ' + curDesc;
             }
-            junyiData[name]["desc"] += "\n" + curDesc;
+            junyiData[name]["desc"] += "<br/>" + curDesc;
         }
     }
     var displayData = this.combineAndSummary(remedialData, junyiData);
